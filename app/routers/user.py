@@ -15,12 +15,12 @@ def get_user(db: Session = Depends(get_db)):
     user_get = db.query(models.Users).all()
     return user_get
 
-@routers.get("/{user_id}", response_model=schemas.getUsers)
+@routers.get("/profile", response_model=schemas.getUsers)
 def user_by_id(user_id: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     #Menyamakan object dari UUID ke String
     current=str(current_user.user_id)
     if current == user_id:
-        user_get = db.query(models.Users).filter(models.Users.user_id == user_id).first()
+        user_get = db.query(models.Users).filter(models.Users.user_id == current).first()
         return user_get
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No permission")
