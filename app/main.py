@@ -3,10 +3,21 @@ from sqlalchemy.orm import Session
 from . import modelsTO
 from .database import engine, get_db
 from .routers import to, user
+from fastapi.middleware.cors import CORSMiddleware
 
 modelsTO.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+origins = ['*']
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(to.routers)
 app.include_router(user.routers)
