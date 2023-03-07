@@ -2,5 +2,11 @@ version: "3.8"
 services:
   api:
     build: .
-    ports: 
-        - 8000:8000
+    image: nineint
+    ports:
+      - 8000:8000
+    container_name: nineint-api
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=postgres
+    
