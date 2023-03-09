@@ -41,7 +41,7 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     return objects
 
 @routers.post("/create", response_model=schemas.Tryout)
-def create_to(create: schemas.Tryout, slug: schemas.Slug, db: Session = Depends(get_db)):
+def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
     to_create = models.mainTO(**create.dict())
     db.add(to_create)
     db.commit()

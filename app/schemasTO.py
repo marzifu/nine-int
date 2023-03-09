@@ -1,10 +1,8 @@
 
-from datetime import date, datetime
-from turtle import title
+from datetime import datetime
 from typing import Optional
-from uuid import uuid4
-from sqlalchemy.dialects.postgresql import UUID
 from pydantic import UUID4, BaseModel, EmailStr, Field
+from fastapi import Form
 
 
 class Users(BaseModel):
@@ -80,5 +78,4 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[UUID4]
 
-class Slug(BaseModel):
-    to_title: str
+
