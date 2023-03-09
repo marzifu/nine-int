@@ -29,6 +29,7 @@ class userLogin(BaseModel):
 
 class Tryout(BaseModel):
     to_title: str
+    to_slug: str
     to_summary: str
     startsAt: datetime
     endsAt: datetime
