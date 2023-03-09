@@ -31,7 +31,6 @@ class userLogin(BaseModel):
 
 class Tryout(BaseModel):
     to_title: str
-    to_slug: str
     to_summary: str
     startsAt: datetime
     endsAt: datetime
@@ -80,3 +79,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[UUID4]
+
+class Slug(BaseModel):
+    to_title: str

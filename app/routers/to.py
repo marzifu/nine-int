@@ -1,12 +1,10 @@
-from doctest import DocTestFailure
 from email.policy import HTTP
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
 from pydantic import UUID4
-from sqlalchemy import delete, text
+from slugify import slugify
 from sqlalchemy.orm import Session
-from app.routers.user import user_by_id
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
 
@@ -20,7 +18,7 @@ def get_to(db: Session = Depends(get_db)):
     to_get = db.query(models.mainTO).all()
     return to_get
 
-@routers.get("/{to_slug}", response_model=schemas.Soal)
+@routers.get("/{to_slug}", response_model=schemas.Tryout)
 def get_to(to_slug: str, db: Session = Depends(get_db)):
     data_to = db.query(models.mainTO).filter(models.mainTO.to_slug == to_slug).first()
     return data_to
@@ -40,10 +38,14 @@ def create_soal(to_slug:str, soal:schemas.Soal, db: Session = Depends(get_db)):
     return soal_create
 
 @routers.post("/create", response_model=schemas.Tryout)
-def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
+def create_to(create: schemas.Tryout, slug: schemas.Slug, db: Session = Depends(get_db)):
     to_create = models.mainTO(**create.dict())
     db.add(to_create)
     db.commit()
+    slug_create = db.query(models.mainTO.to_title).filter(models.mainTO.to_title == create.to_title).first()
+    slug_add = models.mainTO(to_slug=slug_create)
+    db.add(slug_add)
+    db.commit
     db.refresh(to_create)
     return to_create
 
