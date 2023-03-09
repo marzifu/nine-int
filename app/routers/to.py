@@ -29,13 +29,16 @@ def get_soal(to_slug: str, db: Session = Depends(get_db)):
     return data_soal
 
 @routers.post("/{to_slug}/soal", response_model=schemas.Soal)
-def create_soal(to_slug:str, soal:schemas.Soal, db: Session = Depends(get_db)):
-    id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-    soal_create = models.soalTO(to_id=id_dict, **soal.dict())
-    db.add(soal_create)
+def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_db)):
+    objects = []
+    for q in soal:
+        id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+        soal_create = models.soalTO(to_id=id_dict, **soal.dict())
+        objects.append(soal_create)
+    db.bulk_save_objects(objects)
     db.commit()
-    db.refresh(soal_create)
-    return soal_create
+    db.refresh(objects)
+    return objects
 
 @routers.post("/create", response_model=schemas.Tryout)
 def create_to(create: schemas.Tryout, slug: schemas.Slug, db: Session = Depends(get_db)):
