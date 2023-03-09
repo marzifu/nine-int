@@ -1,4 +1,4 @@
-from email.policy import HTTP
+
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
@@ -28,16 +28,15 @@ def get_soal(to_slug: str, db: Session = Depends(get_db)):
     data_soal = db.query(models.soalTO).filter(models.mainTO.to_slug == to_slug).all()
     return data_soal
 
-@routers.post("/{to_slug}/soal", response_model=schemas.Soal)
+@routers.post("/{to_slug}/soal", response_model=List[schemas.Soal])
 def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_db)):
     objects = []
-    for q in soal:
+    for soals in soal:
         id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-        soal_create = models.soalTO(to_id=id_dict, **soal.dict())
+        soal_create = models.soalTO(to_id=id_dict, **soals.dict())
         objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
-    db.refresh(objects)
     return objects
 
 @routers.post("/create", response_model=schemas.Tryout)
