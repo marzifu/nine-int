@@ -13,7 +13,7 @@ routers = APIRouter(
     tags=['Tryout']
 )
 
-@routers.get("/", response_model=List[schemas.Tryout])
+@routers.get("", response_model=List[schemas.Tryout])
 def get_to(db: Session = Depends(get_db)):
     to_get = db.query(models.mainTO).all()
     return to_get
@@ -25,12 +25,14 @@ def get_to(to_slug: str, db: Session = Depends(get_db)):
 
 @routers.get("/{to_slug}/soal", response_model=List[schemas.getSoal])
 def get_soal(to_slug: str, db: Session = Depends(get_db)):
-    data_soal = db.query(models.soalTO).filter(models.mainTO.to_slug == to_slug).all()
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
+    data_soal = db.query(models.soalTO).filter(models.soalTO.to_id == id_to).all()
     return data_soal
 
 @routers.get("/{to_slug}/soal/admin", response_model=List[schemas.Soal])
 def get_soal(to_slug: str, db: Session = Depends(get_db)):
-    data_soal = db.query(models.soalTO).filter(models.mainTO.to_slug == to_slug).all()
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
+    data_soal = db.query(models.soalTO).filter(models.soalTO.to_id == id_to).all()
     return data_soal
 
 @routers.post("/{to_slug}/soal", response_model=List[schemas.Soal])
@@ -49,10 +51,6 @@ def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
     to_create = models.mainTO(**create.dict())
     db.add(to_create)
     db.commit()
-    slug_create = db.query(models.mainTO.to_title).filter(models.mainTO.to_title == create.to_title).first()
-    slug_add = models.mainTO(to_slug=slug_create)
-    db.add(slug_add)
-    db.commit
     db.refresh(to_create)
     return to_create
 
