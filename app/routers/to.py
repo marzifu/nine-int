@@ -2,11 +2,10 @@
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
-from pydantic import UUID4
-from slugify import slugify
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
+from sqlalchemy.dialects.postgresql import insert
 
 routers = APIRouter(
     prefix="/tryouts",
@@ -44,7 +43,14 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
         objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
-    return objects
+    update_stmt = insert(models.soalTO).values(soal_create).on_conflict_do_update(
+        index_soal = [models.soalTO.soal_id],
+        set_ = {'soal_id': insert(models.soalTO).values(soal_create).excluded.soal_id}
+    )
+    db.bulk_save_objects(update_stmt)
+    db.commit
+    return objects 
+
 
 @routers.post("/create", response_model=schemas.Tryout)
 def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
@@ -89,5 +95,5 @@ def ongoing_to(db: Session = Depends(get_db)):
     draft_post = models.draftTO
 
 @routers.post("/{to_slug}/submit")
-def submit_to(db: Session = Depends(get_db)):
+def submit_to(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     to_submit = models.hasilTO
