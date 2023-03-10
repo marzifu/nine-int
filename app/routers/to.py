@@ -2,6 +2,7 @@
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
+from sqlalchemy import Exists
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
@@ -40,17 +41,12 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     for soals in soal:
         id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
+        if soal_create.soal_id == Exists:
+            db.delete(soal_create)
         objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
-    update_stmt = insert(models.soalTO).values(soal_create).on_conflict_do_update(
-        index_soal = [models.soalTO.soal_id],
-        set_ = {'soal_id': insert(models.soalTO).values(soal_create).excluded.soal_id}
-    )
-    db.bulk_save_objects(update_stmt)
-    db.commit
-    return objects 
-
+    return objects
 
 @routers.post("/create", response_model=schemas.Tryout)
 def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
