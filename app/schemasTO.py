@@ -64,6 +64,9 @@ class Hasil(BaseModel):
     totalFalse: int
     score: int
 
+class Jawab(BaseModel):
+    user_answers: list
+
 class Draft(BaseModel):
     soal_struct: list
     user_answers: list

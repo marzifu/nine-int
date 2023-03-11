@@ -2,7 +2,6 @@
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
-from sqlalchemy import Exists
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
@@ -41,8 +40,11 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     for soals in soal:
         id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
-        if soal_create.soal_id == Exists:
-            db.delete(soal_create)
+        db.add(soal_create)
+        id_soal = db.query(models.soalTO.soal_id).all()
+        for id in id_soal:
+            if soal_create.soal_id == id:
+                db.delete(soal_create)
         objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
@@ -91,5 +93,67 @@ def ongoing_to(db: Session = Depends(get_db)):
     draft_post = models.draftTO
 
 @routers.post("/{to_slug}/submit")
-def submit_to(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
-    to_submit = models.hasilTO
+def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    current = str(current_user.user_id)
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    id_taken = db.query(models.takenTO.taken_id).filter(models.takenTO.to_id == id_to).limit(1).scalar()
+    taken_user = db.query(models.takenTO.taken_id).filter(models.takenTO.user_id == current_user.user_id, models.takenTO.to_id == (id_to)).limit(1).scalar()
+    user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
+    #Checking if user exists in the taken table
+    if current == user_exist and id_taken == taken_user:
+        correct = 0
+        false = 0
+        user_answer = models.draftTO(to_id=id_to, user_id=current,**jawab.dict())
+        draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
+        draft_user = db.query(models.draftTO.user_id).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
+        #Checking if the current user exists in the draft table
+        if current == str(draft_user):
+            db.delete(draft_content)
+            db.commit()
+            db.add(user_answer)
+            db.commit()
+        else:
+            db.add(user_answer)
+            db.commit()
+        id_soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
+        correctAns = db.query(models.soalTO.correctAns).filter(models.soalTO.to_id == id_to).all()
+        correction = db.query(models.draftTO.user_answers).filter(models.draftTO.to_id == id_to).scalar()
+        #Main correction function
+        ans = []
+        ids = []
+        counter = 0
+        buffer = 0
+        for id in id_soal:
+            ids.append(id[0])
+        for anz in correctAns:
+            ans.append(anz[0])
+        for corr in correction:
+            while counter < len(correction):
+                if ans[counter] == corr:
+                    correct+=1
+                    buffer+=1
+                    break
+                counter +=1
+            else:
+                false+=1
+                buffer+=1
+            counter = buffer
+        finalScore = correct * 2
+        final = models.hasilTO(user_id=current, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
+        #Final check if user in hasil table exists with the hasil id existing
+        hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == taken_user).limit(1).scalar()
+        hasil_user = db.query(models.hasilTO.user_id).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist).scalar()
+        hasil_content = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist).scalar()
+        if current == str(hasil_user):
+            db.delete(hasil_content)
+            db.commit()
+            db.add(final)
+            db.commit()
+            db.refresh(final)
+        else:
+            db.add(final)
+            db.commit()
+            db.refresh(final)
+        return final
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User conflict - return to menu")

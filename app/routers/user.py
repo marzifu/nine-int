@@ -26,16 +26,6 @@ def user_by_id(db: Session = Depends(get_db), current_user: int = Depends(auth.c
         return user_get
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No permission")
-    
-@routers.post("register/form")
-def add_form(users: schemas.Users = Form(), db: Session = Depends(get_db)):
-    hashed_pwd = auth.hash(users.password)
-    users.password = hashed_pwd
-    user_add = models.Users(**users.dict())
-    db.add(user_add)
-    db.commit()
-    db.refresh(user_add)
-    return user_add 
 
 @routers.post("/register", response_model=schemas.Users)
 def add_user(users: schemas.Users, db: Session = Depends(get_db)):
