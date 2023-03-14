@@ -88,6 +88,7 @@ class hasilTO(Base):
     __tablename__ = "to_hasil"
 
     hasil_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    to_id = Column(Integer, ForeignKey("to_main.to_id", ondelete="CASCADE"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     taken_id = Column(Integer, ForeignKey("to_taken.taken_id", ondelete="CASCADE"), nullable=False)
     totalCorrect = Column(Integer)

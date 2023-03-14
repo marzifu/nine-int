@@ -133,17 +133,12 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
                 counter+=1
         counter = 0    
         finalScore = correct * 2
-        final = models.hasilTO(user_id=current, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
+        final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
         #Final check if user in hasil table exists with the hasil id existing
         hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == taken_user).limit(1).scalar()
-        hasil_user = db.query(models.hasilTO.user_id).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist).scalar()
-        hasil_content = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist).scalar()
-        if current == str(hasil_user):
-            db.delete(hasil_content)
-            db.commit()
-            db.add(final)
-            db.commit()
-            db.refresh(final)
+        to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
+        if to_hasil != None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
         else:
             db.add(final)
             db.commit()
