@@ -1,9 +1,8 @@
 
-from enum import auto
 from .database import Base
-from sqlalchemy import TIME, ForeignKey, column, false, text
+from sqlalchemy import JSON, TIME, ForeignKey, column, false, text
 from sqlalchemy.sql.expression import null
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY as arr
 from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 
 
@@ -71,7 +70,7 @@ class draftTO(Base):
     to_id = Column(Integer, ForeignKey("to_main.to_id", ondelete="CASCADE"), nullable=False)
     soal_struct = Column(ARRAY(String))
     #Storage untuk struktur soal sesuai tipe
-    user_answers = Column(ARRAY(String))
+    user_answers = Column(JSONB)
     #Storage buat jawaban user
 
 class bahasTO(Base):
@@ -81,7 +80,7 @@ class bahasTO(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     soal_struct = Column(ARRAY(String))
     #Storage untuk struktur soal dari draft
-    user_answers = Column(ARRAY(String))
+    user_answers = Column(ARRAY(JSONB))
     #Storage buat jawaban user
     video_url = Column(String)
 

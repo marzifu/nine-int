@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
 from sqlalchemy.dialects.postgresql import insert
+import json
 
 routers = APIRouter(
     prefix="/tryouts",
@@ -103,7 +104,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
     if current == user_exist and id_taken == taken_user:
         correct = 0
         false = 0
-        user_answer = models.draftTO(to_id=id_to, user_id=current,**jawab.dict())
+        user_answer = models.draftTO(to_id=id_to, user_id=current_user.user_id, **jawab.dict())
         draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
         draft_user = db.query(models.draftTO.user_id).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
         #Checking if the current user exists in the draft table
@@ -115,29 +116,22 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         else:
             db.add(user_answer)
             db.commit()
-        id_soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
-        correctAns = db.query(models.soalTO.correctAns).filter(models.soalTO.to_id == id_to).all()
-        correction = db.query(models.draftTO.user_answers).filter(models.draftTO.to_id == id_to).scalar()
+        correction = db.query(models.draftTO.user_answers).scalar()
         #Main correction function
-        ans = []
-        ids = []
+        ansIds = []
+        cor = []
         counter = 0
-        buffer = 0
-        for id in id_soal:
-            ids.append(id[0])
-        for anz in correctAns:
-            ans.append(anz[0])
         for corr in correction:
-            while counter < len(correction):
-                if ans[counter] == corr:
-                    correct+=1
-                    buffer+=1
-                    break
-                counter +=1
+            cor.append(corr['answer'])
+            ansIds.append(corr['soal_id'])
+        while counter < len(cor):
+            if db.query(models.soalTO.correctAns).filter(models.soalTO.soal_id == ansIds[counter]).limit(1).scalar() == cor[counter]:
+                correct+=1
+                counter+=1
             else:
                 false+=1
-                buffer+=1
-            counter = buffer
+                counter+=1
+        counter = 0    
         finalScore = correct * 2
         final = models.hasilTO(user_id=current, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
         #Final check if user in hasil table exists with the hasil id existing
