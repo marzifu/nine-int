@@ -1,4 +1,5 @@
 
+from doctest import DocTestFailure
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
@@ -76,26 +77,6 @@ def take_to(to_slug: str, take: schemas.Taken, db: Session = Depends(get_db), cu
     db.refresh(to_taken)
     return to_taken
 
-@routers.delete("/remove/{to_slug}")
-def drop_to(to_slug: str, db: Session = Depends(get_db),current_user: int = Depends(auth.current_user)):
-    taken_query = db.query(models.takenTO).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
-    taken_to = taken_query
-    
-    if taken_to == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"You have not taken this tryout yet")
-    
-    if str(taken_to.user_id) != str(current_user.user_id):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform action")
-    
-    db.delete(taken_to)
-    db.commit()
-   
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-@routers.post("/{to_slug}/on")
-def ongoing_to(db: Session = Depends(get_db)):
-    draft_post = models.draftTO
-
 @routers.post("/{to_slug}/submit")
 def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
@@ -146,9 +127,26 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
             db.add(final)
             db.commit()
             db.refresh(final)
-        return final
+            return final
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User conflict - return to menu")
+
+@routers.delete("/remove/{to_slug}")
+def drop_to(to_slug: str, db: Session = Depends(get_db),current_user: int = Depends(auth.current_user)):
+    taken_query = db.query(models.takenTO).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
+    taken_to = taken_query
     
+    if taken_to == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"You have not taken this tryout yet")
+    
+    if str(taken_to.user_id) != str(current_user.user_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to perform action")
+    
+    db.delete(taken_to)
+    db.commit()
+   
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+  
 
 
