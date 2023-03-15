@@ -1,8 +1,7 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import UUID4, BaseModel, EmailStr, Field, Json
-from fastapi import Form
+from pydantic import UUID4, BaseModel, EmailStr
 
 
 class Users(BaseModel):
@@ -56,6 +55,15 @@ class getSoal(BaseModel):
 
 class Taken(BaseModel):
     type: int
+    class Config:
+        orm_mode = True
+
+
+class getAmbil(BaseModel):
+    to_id: int
+    status: int
+    type: int
+
     class Config:
         orm_mode = True
 

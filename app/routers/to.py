@@ -5,8 +5,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
-from sqlalchemy.dialects.postgresql import insert
-import json
 
 routers = APIRouter(
     prefix="/tryouts",
@@ -17,6 +15,11 @@ routers = APIRouter(
 def get_to(db: Session = Depends(get_db)):
     to_get = db.query(models.mainTO).all()
     return to_get
+
+@routers.get("/taken", response_model=List[schemas.getAmbil])
+def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
+    taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
+    return taken_get
 
 @routers.get("/{to_slug}", response_model=schemas.Tryout)
 def get_to(to_slug: str, db: Session = Depends(get_db)):
@@ -146,3 +149,6 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         return final
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User conflict - return to menu")
+    
+
+

@@ -1,8 +1,7 @@
 
 from .database import Base
-from sqlalchemy import JSON, TIME, ForeignKey, column, false, text
-from sqlalchemy.sql.expression import null
-from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY as arr
+from sqlalchemy import ForeignKey, text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 
 
@@ -28,7 +27,7 @@ class takenTO(Base):
     #2 = ongoing
     #3 = finished
     takenAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
-    finishAt = Column(TIMESTAMP(timezone=True))
+    finishAt = Column(TIMESTAMP(timezone=True), nullable=True)
 
 class mainTO(Base):
     __tablename__ = "to_main"
