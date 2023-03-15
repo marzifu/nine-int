@@ -22,10 +22,10 @@ class takenTO(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     to_id = Column(Integer, ForeignKey("to_main.to_id", ondelete="CASCADE"), nullable=False)
     status = Column(Integer, server_default="1")
-    type = Column(Integer)
     #1 = taken
     #2 = ongoing
     #3 = finished
+    type = Column(Integer)
     takenAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
     finishAt = Column(TIMESTAMP(timezone=True), nullable=True)
 

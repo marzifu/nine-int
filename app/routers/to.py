@@ -17,11 +17,23 @@ def get_to(db: Session = Depends(get_db)):
     to_get = db.query(models.mainTO).all()
     return to_get
 
-@routers.get("/taken", response_model=List[schemas.getAmbil])
+@routers.get("/taken")
 def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
     taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
-    return taken_get
-
+    to_details = []
+    for idz in taken_get:
+        main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id).scalar()
+        to_details.append(main_to)
+    payload = []
+    counter = 0
+    while counter < len(to_details):
+        data = {
+            "to_details": to_details[counter],
+            "taken_details": taken_get[counter]
+        }
+        counter+=1
+        payload.append(data)
+    return payload
 @routers.get("/{to_slug}", response_model=schemas.Tryout)
 def get_to(to_slug: str, db: Session = Depends(get_db)):
     data_to = db.query(models.mainTO).filter(models.mainTO.to_slug == to_slug).first()
