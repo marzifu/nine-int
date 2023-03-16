@@ -1,35 +1,12 @@
 
 from datetime import datetime
 from typing import Optional
-from pydantic import UUID4, BaseModel, EmailStr
-
-
-class Users(BaseModel):
-    user_name: str
-    user_email : EmailStr
-    password: str
-
-    class Config:
-        orm_mode = True
-
-class getUsers(BaseModel):
-    user_id: UUID4
-    user_name: str
-    user_email: str
-    class Config:
-        orm_mode = True
-
-class userLogin(BaseModel):
-    user_email: EmailStr
-    password: str
-    
-    class Config:
-        orm_mode = True
+from pydantic import UUID4, BaseModel
 
 class BankSoal(BaseModel):
-    to_title: str
-    to_slug: str
-    to_summary: str
+    bs_title: str
+    bs_slug: str
+    bs_summary: str
     startsAt: datetime
     endsAt: datetime
     class Config:
@@ -60,7 +37,7 @@ class Taken(BaseModel):
 
 
 class getAmbil(BaseModel):
-    to_id: int
+    bs_id: int
     status: int
     type: int
 

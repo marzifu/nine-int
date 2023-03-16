@@ -1,5 +1,5 @@
 
-from doctest import DocTestFailure
+from datetime import datetime
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
@@ -22,18 +22,22 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
     taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
     to_details = []
     for idz in taken_get:
-        main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id).scalar()
+        main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id, models.mainTO.startsAt > datetime.now()).scalar()
         to_details.append(main_to)
     payload = []
     counter = 0
     while counter < len(to_details):
-        data = {
-            "to_details": to_details[counter],
-            "taken_details": taken_get[counter]
-        }
-        counter+=1
-        payload.append(data)
+        if to_details[counter] != None:
+            data = {
+                "to_details": to_details[counter],
+                "taken_details": taken_get[counter]
+            }
+            counter+=1
+            payload.append(data)
+        else:
+            counter+=1
     return payload
+
 @routers.get("/{to_slug}", response_model=schemas.Tryout)
 def get_to(to_slug: str, db: Session = Depends(get_db)):
     data_to = db.query(models.mainTO).filter(models.mainTO.to_slug == to_slug).first()
@@ -159,6 +163,20 @@ def drop_to(to_slug: str, db: Session = Depends(get_db),current_user: int = Depe
    
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+@routers.delete("/delete/{to_slug}")
+def delete_to(to_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    tryout_slug = db.query(models.mainTO).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
+
+    if tryout_slug == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No tryouts found")
+    else:
+        db.delete(tryout_slug)
+        db.commit()
+
+@routers.delete("/results")
+def history(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    results = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
+    return results
   
 
 
