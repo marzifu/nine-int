@@ -66,20 +66,27 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     lenTO = len(to_details)
     lenBS = len(bs_details)
 
-    if lenTO >= lenBS:
-        while counter < len(to_details):
+    counter = 0
+    if bs_details == [] and to_details != []:
+        while counter < lenTO:
+            data = {
+                "to_details": to_details[counter]
+            }
+            payload.append(data)
+            counter += 1
+    elif bs_details != [] and to_details == []:
+        while counter < lenTO:
+            data = {
+                "bs_details": bs_details[counter]
+            }
+            payload.append(data)
+            counter += 1
+    elif bs_details != [] and to_details != []:
+        while counter < lenTO:
             data = {
                 "to_details": to_details[counter],
                 "bs_details": bs_details[counter]
             }
-            counter+=1
             payload.append(data)
-    else:
-        while counter < len(bs_details):
-            data = {
-                "to_details": to_details[counter],
-                "bs_details": bs_details[counter]
-            }
-            counter+=1
-            payload.append(data)
+            counter += 1
     return payload

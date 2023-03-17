@@ -36,6 +36,7 @@ class Tryout(BaseModel):
         orm_mode = True
 
 class Soal(BaseModel):
+    soal_id: Optional[int] = None
     type: int
     mapel: int
     content: str
@@ -57,7 +58,6 @@ class Taken(BaseModel):
     type: int
     class Config:
         orm_mode = True
-
 
 class getAmbil(BaseModel):
     to_id: int

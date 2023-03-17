@@ -60,12 +60,12 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     objects = []
     for soals in soal:
         id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-        soal_create = models.soalTO(to_id=id_dict, **soals.dict())
-        db.add(soal_create)
-        id_soal = db.query(models.soalTO.soal_id).all()
+        id_soal = db.query(models.soalTO).filter(models.soalTO.to_id == id_dict).all()
         for id in id_soal:
-            if soal_create.soal_id == id:
-                db.delete(soal_create)
+            tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
+            db.delete(tba_del)
+            db.commit()
+        soal_create = models.soalTO(to_id=id_dict, **soals.dict())
         objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
