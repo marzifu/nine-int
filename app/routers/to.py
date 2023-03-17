@@ -174,7 +174,7 @@ def delete_to(to_slug:str, db: Session = Depends(get_db), current_user: int = De
         db.commit()
 
 @routers.delete("/results")
-def history(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+def result(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     results = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
     return results
   

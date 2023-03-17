@@ -147,6 +147,19 @@ def drop_bs(bs_slug: str, db: Session = Depends(get_db),current_user: int = Depe
    
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-  
+@routers.delete("/delete/{bs_slug}")
+def delete_to(bs_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    tryout_slug = db.query(models.mainBS).filter(models.mainBS.bs_slug == bs_slug).limit(1).scalar()
+
+    if tryout_slug == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No tryouts found")
+    else:
+        db.delete(tryout_slug)
+        db.commit()
+
+@routers.delete("/results")
+def result(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    results = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
+    return results
 
 

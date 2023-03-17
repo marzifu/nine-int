@@ -4,7 +4,7 @@ from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from ..database import get_db
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from .. import schemasTO as schemas, modelsTO as models, auth
+from .. import schemasTO as schemas, modelsTO as models, auth, modelsBS as bs
 
 routers = APIRouter(
     prefix="/users",
@@ -50,3 +50,36 @@ def log_user(users: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
     uid = str(login.user_id)
     access_token = auth.create_token(data = {"user_id": uid})
     return {"token": access_token, "token_type": "bearer"}
+
+@routers.get("/history")
+def history(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    hasil_to = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
+    hasil_bs = db.query(bs.hasilBS).filter(bs.hasilBS.user_id == current_user.user_id).all()
+    to_details = []
+    bs_details = []
+    for idz in hasil_to:
+        to_details.append(idz)
+    for ids in hasil_bs:
+        bs_details.append(ids)
+    payload = []
+    counter = 0
+    lenTO = len(to_details)
+    lenBS = len(bs_details)
+
+    if lenTO >= lenBS:
+        while counter < len(to_details):
+            data = {
+                "to_details": to_details[counter],
+                "bs_details": bs_details[counter]
+            }
+            counter+=1
+            payload.append(data)
+    else:
+        while counter < len(bs_details):
+            data = {
+                "to_details": to_details[counter],
+                "bs_details": bs_details[counter]
+            }
+            counter+=1
+            payload.append(data)
+    return payload
