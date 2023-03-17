@@ -90,3 +90,15 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             payload.append(data)
             counter += 1
     return payload
+
+@routers.put("/profile")
+def edit_profile(user: schemas.Users ,db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    user_profile = db.query(models.Users).filter(models.Users.user_id == current_user.user_id).scalar()
+    if user_profile.user_id == current_user.user_id:
+        content = models.Users(**user.dict())
+
+        user_profile.update(content)
+        db.commit()
+    
+    return {"status": 'Success!'}
+
