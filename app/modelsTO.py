@@ -1,6 +1,6 @@
 
 from .database import Base
-from sqlalchemy import ForeignKey, text
+from sqlalchemy import ForeignKey, column, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 
@@ -10,8 +10,12 @@ class Users(Base):
 
     user_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, server_default=text("gen_random_uuid()"))
     user_name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
     membership = Column(String, server_default="Free")
     user_email = Column(String, nullable=False, unique=True)
+    pp_link = Column(String)
+    gender = Column(String)
+    address = Column(String)
     password = Column(String, nullable=False)
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
 

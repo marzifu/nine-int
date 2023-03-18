@@ -8,9 +8,15 @@ class Users(BaseModel):
     user_name: str
     user_email : EmailStr
     password: str
+    phone: str
 
     class Config:
         orm_mode = True
+
+class UpdateUser(Users):
+    address: str
+    pp_link: str
+    gender: str
 
 class getUsers(BaseModel):
     user_id: UUID4

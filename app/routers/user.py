@@ -92,12 +92,12 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     return payload
 
 @routers.put("/profile")
-def edit_profile(user: schemas.Users ,db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+def edit_profile(user: schemas.UpdateUser ,db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     user_profile = db.query(models.Users).filter(models.Users.user_id == current_user.user_id).scalar()
+    user_prof = db.query(models.Users).filter(models.Users.user_id == current_user.user_id)
     if user_profile.user_id == current_user.user_id:
-        content = models.Users(**user.dict())
 
-        user_profile.update(content)
+        user_prof.update({"user_name": user.user_name, "phone": user.phone, "address": user.address, "gender": user.gender, "pp_link": user.pp_link}, synchronize_session=False)
         db.commit()
     
     return {"status": 'Success!'}
