@@ -81,10 +81,10 @@ def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
 
 @routers.post("/take/{to_slug}", response_model=schemas.Taken)
 def take_to(to_slug: str, take: schemas.Taken, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
-    current_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-    taken_to = db.query(models.takenTO.to_id).filter(models.takenTO.to_id == current_to).limit(1).scalar()
-    user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
     current = str(current_user.user_id)
+    current_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    taken_to = db.query(models.takenTO.to_id).filter(models.takenTO.to_id == current_to, models.takenTO.user_id == current).limit(1).scalar()
+    user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
     if current_to == taken_to and user_exist == current:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You have taken this tryout")
     to_taken = models.takenTO(user_id=current_user.user_id,to_id=current_to, type=take.type)

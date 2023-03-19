@@ -59,8 +59,10 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     bs_details = []
     for idz in hasil_to:
         to_details.append(idz)
+        print(hasil_to, " hasil to")
     for ids in hasil_bs:
         bs_details.append(ids)
+        print(hasil_bs, " hasil bs")
     payload = []
     counter = 0
     lenTO = len(to_details)
@@ -91,7 +93,7 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             counter += 1
     return payload
 
-@routers.put("/profile")
+@routers.put("/profile/edit")
 def edit_profile(user: schemas.UpdateUser ,db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     user_profile = db.query(models.Users).filter(models.Users.user_id == current_user.user_id).scalar()
     user_prof = db.query(models.Users).filter(models.Users.user_id == current_user.user_id)
