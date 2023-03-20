@@ -5,11 +5,12 @@ from .database import engine, get_db
 from .routers import to, user, materi, bs
 from fastapi.middleware.cors import CORSMiddleware
 
-modelsTO.Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
-origins = ['*']
+origins = [
+    'https://nineint-api.herokuapp.com/',
+    'https://git.heroku.com/nineint-api.git'
+]
 
 app.add_middleware(
     CORSMiddleware,
