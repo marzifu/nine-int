@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
+from sqlalchemy import null
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemasTO as schemas, modelsTO as models, auth
@@ -62,14 +63,14 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     for soals in soal:
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
         #Kalau data yang dikirim answernya kosong dan punya soal_id maka delete soal tsb!
-        if soal_create.answers == [] and soal_create.soal_id != None:
+        if soal_create.answers == [] and soal_create.soal_id != 0:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
                 db.delete(tba_del)
                 db.commit()
         #Kalau data yang dikirim memiliki soal_id dan tidak ada data kosong maka update!
-        elif soal_create.soal_id != None:
+        elif soal_create.soal_id != 0:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
@@ -84,6 +85,7 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
                 db.delete(tba_del)
                 db.commit()
             objects.append(soal_create)
+            print(soal_create.soal_id)
     db.bulk_save_objects(objects)
     db.commit()
     return objects
