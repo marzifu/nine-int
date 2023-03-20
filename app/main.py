@@ -6,12 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins = [
-    'localhost:8000',
-    'https://nineint-api.herokuapp.com/',
-    'localhost:3000',
-    'localhost'
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
