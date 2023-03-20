@@ -1,13 +1,17 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-from . import modelsTO
 from .database import engine, get_db
 from .routers import to, user, materi, bs
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins = ["*"]
+origins = [
+    'localhost:8000',
+    'https://nineint-api.herokuapp.com/',
+    'localhost:3000',
+    'localhost'
+]
 
 app.add_middleware(
     CORSMiddleware,
