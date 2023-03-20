@@ -58,15 +58,29 @@ def get_soal(to_slug: str, db: Session = Depends(get_db)):
 @routers.post("/{to_slug}/soal", response_model=List[schemas.Soal])
 def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_db)):
     objects = []
+    id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     for soals in soal:
-        id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-        id_soal = db.query(models.soalTO).filter(models.soalTO.to_id == id_dict).all()
-        for id in id_soal:
-            tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
-            db.delete(tba_del)
-            db.commit()
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
-        objects.append(soal_create)
+        if soal_create.answers == [] and soal_create.soal_id != None:
+            id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
+            for id in id_soal:
+                tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
+                db.delete(tba_del)
+                db.commit()
+        elif soal_create.soal_id != None:
+            id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
+            for id in id_soal:
+                tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
+                db.delete(tba_del)
+                db.commit()
+            objects.append(soal_create)
+        else:
+            id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == id_dict)
+            for id in id_soal:
+                tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
+                db.delete(tba_del)
+                db.commit()
+            objects.append(soal_create)
     db.bulk_save_objects(objects)
     db.commit()
     return objects
@@ -97,11 +111,10 @@ def take_to(to_slug: str, take: schemas.Taken, db: Session = Depends(get_db), cu
 def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-    id_taken = db.query(models.takenTO.taken_id).filter(models.takenTO.to_id == id_to).limit(1).scalar()
-    taken_user = db.query(models.takenTO.taken_id).filter(models.takenTO.user_id == current_user.user_id, models.takenTO.to_id == (id_to)).limit(1).scalar()
+    id_taken = db.query(models.takenTO.taken_id).filter(models.takenTO.user_id == current_user.user_id, models.takenTO.to_id == (id_to)).limit(1).scalar()
     user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
     #Checking if user exists in the taken table
-    if current == user_exist and id_taken == taken_user:
+    if current == user_exist and id_taken != None:
         correct = 0
         false = 0
         user_answer = models.draftTO(to_id=id_to, user_id=current_user.user_id, **jawab.dict())
@@ -116,7 +129,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         else:
             db.add(user_answer)
             db.commit()
-        correction = db.query(models.draftTO.user_answers).scalar()
+        correction = db.query(models.draftTO.user_answers).filter(models.draftTO.user_id == current, models.draftTO.to_id == id_to).scalar()
         #Main correction function
         ansIds = []
         cor = []
@@ -135,7 +148,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         finalScore = correct * 2
         final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
         #Final check if user in hasil table exists with the hasil id existing
-        hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == taken_user).limit(1).scalar()
+        hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == id_taken).limit(1).scalar()
         to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
         if to_hasil != None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
