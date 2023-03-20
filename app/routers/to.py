@@ -63,14 +63,14 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     for soals in soal:
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
         #Kalau data yang dikirim answernya kosong dan punya soal_id maka delete soal tsb!
-        if soal_create.answers == [] and soal_create.soal_id != 0:
+        if soal_create.answers == [] and soal_create.soal_id != null:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
                 db.delete(tba_del)
                 db.commit()
         #Kalau data yang dikirim memiliki soal_id dan tidak ada data kosong maka update!
-        elif soal_create.soal_id != 0:
+        elif soal_create.soal_id != null:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
@@ -167,7 +167,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
 
 @routers.delete("/remove/{to_slug}")
 def drop_to(to_slug: str, db: Session = Depends(get_db),current_user: int = Depends(auth.current_user)):
-    taken_query = db.query(models.takenTO).filter(models.mainTO.to_slug == to_slug).limit(1).scalar()
+    taken_query = db.query(models.takenTO).filter(models.mainTO.to_slug == to_slug, models.takenTO.user_id == current_user.user_id).limit(1).scalar()
     taken_to = taken_query
     
     if taken_to == None:

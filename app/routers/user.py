@@ -55,39 +55,48 @@ def log_user(users: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
 def history(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     hasil_to = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
     hasil_bs = db.query(bs.hasilBS).filter(bs.hasilBS.user_id == current_user.user_id).all()
-    to_details = []
-    bs_details = []
+    to_hasil = []
+    bs_hasil = []
+    to_ids = []
+    bs_ids = []
     for idz in hasil_to:
-        to_details.append(idz)
-        print(hasil_to, " hasil to")
+        to_hasil.append(idz)
+        to_ids.append(idz.to_id)
     for ids in hasil_bs:
-        bs_details.append(ids)
-        print(hasil_bs, " hasil bs")
+        bs_hasil.append(ids)
+        bs_ids.append(ids)
     payload = []
     counter = 0
-    lenTO = len(to_details)
-    lenBS = len(bs_details)
+    lenTO = len(to_hasil)
 
     counter = 0
-    if bs_details == [] and to_details != []:
+    if bs_hasil == [] and to_hasil != []:
+        details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
         while counter < lenTO:
             data = {
-                "to_details": to_details[counter]
+                "to_hasil": to_hasil[counter],
+                "to_details": details_to
             }
             payload.append(data)
             counter += 1
-    elif bs_details != [] and to_details == []:
+    elif bs_hasil != [] and to_hasil == []:
+        details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
         while counter < lenTO:
             data = {
-                "bs_details": bs_details[counter]
+                "bs_hasil": bs_hasil[counter],
+                "bs_details": details_bs
             }
             payload.append(data)
             counter += 1
-    elif bs_details != [] and to_details != []:
+    elif bs_hasil != [] and to_hasil != []:
+        details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
+        details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
         while counter < lenTO:
             data = {
-                "to_details": to_details[counter],
-                "bs_details": bs_details[counter]
+                "to_hasil": to_hasil[counter],
+                "bs_hasil": bs_hasil[counter],
+                "to_details": details_to,
+                "bs_details": details_bs
             }
             payload.append(data)
             counter += 1
