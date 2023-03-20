@@ -61,12 +61,14 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     id_dict = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     for soals in soal:
         soal_create = models.soalTO(to_id=id_dict, **soals.dict())
+        #Kalau data yang dikirim answernya kosong dan punya soal_id maka delete soal tsb!
         if soal_create.answers == [] and soal_create.soal_id != None:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
                 db.delete(tba_del)
                 db.commit()
+        #Kalau data yang dikirim memiliki soal_id dan tidak ada data kosong maka update!
         elif soal_create.soal_id != None:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == soal_create.soal_id)
             for id in id_soal:
@@ -74,6 +76,7 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
                 db.delete(tba_del)
                 db.commit()
             objects.append(soal_create)
+        #Kalau data tidak memiliki soal_id dan tidak ada data kosong maka post data baru!
         else:
             id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == id_dict)
             for id in id_soal:
