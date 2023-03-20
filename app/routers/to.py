@@ -191,7 +191,7 @@ def delete_to(to_slug:str, db: Session = Depends(get_db), current_user: int = De
         db.delete(tryout_slug)
         db.commit()
 
-@routers.delete("/results")
+@routers.get("/results")
 def result(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     results = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
     return results
