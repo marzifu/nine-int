@@ -7,10 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins = [
-    'https://nineint-api.herokuapp.com/',
-    'https://git.heroku.com/nineint-api.git'
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
