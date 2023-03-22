@@ -6,14 +6,18 @@ from pydantic import UUID4, BaseModel, EmailStr
 
 class Users(BaseModel):
     user_name: str
-    user_email : EmailStr
+    user_email: EmailStr
     password: str
     phone: str
 
     class Config:
         orm_mode = True
 
-class UpdateUser(Users):
+class UpdateUser(BaseModel):
+    user_id: UUID4
+    user_name: str
+    user_email: EmailStr
+    phone: str
     address: str
     pp_link: str
     gender: str
