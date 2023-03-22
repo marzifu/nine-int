@@ -152,6 +152,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         counter = 0    
         finalScore = correct * 2
         final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
+        finished_to = db.query(models.takenTO).filter(models.takenTO.to_id == id_to, models.takenTO.user_id == current_user.user_id).first()
         #Final check if user in hasil table exists with the hasil id existing
         hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == id_taken).limit(1).scalar()
         to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
@@ -159,6 +160,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
         else:
             db.add(final)
+            db.delete(finished_to)
             db.commit()
             db.refresh(final)
             return final
@@ -195,3 +197,15 @@ def delete_to(to_slug:str, db: Session = Depends(get_db), current_user: int = De
 def result(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     results = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id).all()
     return results
+
+@routers.get("/check/{to_slug}")
+def check(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.to_id == id_to).scalar()
+    user_check = to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
+
+    if user_check != None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You have submitted this tryout!")
+    
+    else:
+        return ("Good luck and have fun!")
