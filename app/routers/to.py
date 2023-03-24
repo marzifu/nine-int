@@ -25,6 +25,7 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
     for idz in taken_get:
         main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id, models.mainTO.startsAt > datetime.now()).scalar()
         to_details.append(main_to)
+        print(to_details)
     payload = []
     counter = 0
     while counter < len(to_details):
@@ -152,7 +153,6 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         counter = 0    
         finalScore = correct * 2
         final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
-        finished_to = db.query(models.takenTO).filter(models.takenTO.to_id == id_to, models.takenTO.user_id == current_user.user_id).first()
         #Final check if user in hasil table exists with the hasil id existing
         hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == id_taken).limit(1).scalar()
         to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
@@ -160,7 +160,6 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
         else:
             db.add(final)
-            db.delete(finished_to)
             db.commit()
             db.refresh(final)
             return final
