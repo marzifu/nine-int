@@ -22,6 +22,7 @@ def get_to(db: Session = Depends(get_db)):
 def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
     taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
     to_details = []
+    #Upcoming
     for idz in taken_get:
         main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id, models.mainTO.startsAt > datetime.now()).scalar()
         to_details.append(main_to)
@@ -201,7 +202,7 @@ def result(db: Session = Depends(get_db), current_user: int = Depends(auth.curre
 def check(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.to_id == id_to).scalar()
-    user_check = to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
+    user_check = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
 
     if user_check != None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You have submitted this tryout!")
