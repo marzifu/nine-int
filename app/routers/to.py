@@ -260,3 +260,8 @@ def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), cu
         db.add(add_answers)
         db.commit()
     return ("Added!")
+
+@routers.get("/{to_slug}/pembahasan")
+def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    bahas_exist = db.query(models.bahasTO).filter(models.bahasTO.user_id == current_user.user_id, models.bahasTO.to_id == id_to).scalar()
