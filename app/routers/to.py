@@ -136,7 +136,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         false = 0
         user_answer = models.draftTO(to_id=id_to, user_id=current_user.user_id, **jawab.dict())
         draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
-        draft_user = db.query(models.draftTO.user_id).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
+        draft_user = db.query(models.draftTO.user_id).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
         #Checking if the current user exists in the draft table
         if current == str(draft_user):
             db.delete(draft_content)
@@ -146,30 +146,40 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         else:
             db.add(user_answer)
             db.commit()
+            db.refresh()
         correction = db.query(models.draftTO.user_answers).filter(models.draftTO.user_id == current, models.draftTO.to_id == id_to).scalar()
         #Main correction function
         ansIds = []
         cor = []
+        #Variables for Pembahasan
+        pembahasan = []
         counter = 0
         for corr in correction:
             cor.append(corr['answer'])
             ansIds.append(corr['soal_id'])
         while counter < len(cor):
             if db.query(models.soalTO.correctAns).filter(models.soalTO.soal_id == ansIds[counter]).limit(1).scalar() == cor[counter]:
+                correct_ans = {"soal_id": ansIds[counter], "answer": cor[counter], "detail": "correct"}
+                pembahasan.append(correct_ans)
                 correct+=1
                 counter+=1
             else:
+                false_ans = {"soal_id": ansIds[counter], "answer": cor[counter], "detail": "false"}
+                pembahasan.append(false_ans)
                 false+=1
                 counter+=1
         counter = 0    
         finalScore = correct * 2
         final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
+        bahas = models.bahasTO(user_id=current, to_id=id_to, user_answers=pembahasan)
         #Final check if user in hasil table exists with the hasil id existing
         hasil_exist = db.query(models.hasilTO.hasil_id).filter(models.hasilTO.taken_id == id_taken).limit(1).scalar()
         to_hasil = db.query(models.hasilTO).filter(models.hasilTO.user_id == current_user.user_id, models.hasilTO.hasil_id == hasil_exist, models.hasilTO.to_id == id_to).scalar()
         if to_hasil != None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
         else:
+            db.add(bahas)
+            db.commit()
             db.add(final)
             db.commit()
             db.refresh(final)

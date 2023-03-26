@@ -83,9 +83,10 @@ class bahasTO(Base):
 
     bahas_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    to_id = Column(Integer, ForeignKey("to_main.to_id", ondelete="CASCADE"), nullable=False) 
     soal_struct = Column(ARRAY(String))
     #Storage untuk struktur soal dari draft
-    user_answers = Column(ARRAY(JSONB))
+    user_answers = Column(JSONB)
     #Storage buat jawaban user
     video_url = Column(String)
 
