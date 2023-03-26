@@ -1,6 +1,6 @@
 
 from .database import Base
-from sqlalchemy import ForeignKey, column, text
+from sqlalchemy import ForeignKey, column, false, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 
@@ -41,6 +41,7 @@ class mainTO(Base):
     to_slug = Column(String, nullable=False, unique=True)
     to_summary = Column(String, nullable=False)
     published = Column(Boolean, server_default="True")
+    duration = Column(Integer, nullable=False)
     startsAt = Column(TIMESTAMP(timezone=True))
     endsAt = Column(TIMESTAMP(timezone=True))
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
@@ -75,6 +76,7 @@ class draftTO(Base):
     #Storage untuk struktur soal sesuai tipe
     user_answers = Column(JSONB)
     #Storage buat jawaban user
+    duration = Column(TIMESTAMP(timezone=True))
 
 class bahasTO(Base):
     __tablename__ = "to_bahas"

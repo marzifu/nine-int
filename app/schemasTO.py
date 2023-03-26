@@ -40,6 +40,7 @@ class Tryout(BaseModel):
     to_title: str
     to_slug: str
     to_summary: str
+    duration: int
     startsAt: datetime
     endsAt: datetime
     class Config:
@@ -86,8 +87,7 @@ class Jawab(BaseModel):
     user_answers: list
 
 class Draft(BaseModel):
-    soal_struct: list
-    user_answers: list
+    user_answers: Optional[list]
 
 class Bahas(BaseModel):
     soal_struct: str

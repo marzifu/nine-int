@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
@@ -13,6 +13,13 @@ routers = APIRouter(
     tags=['Tryout']
 )
 
+@routers.post("/create", response_model=schemas.Tryout)
+def create_to(buat: schemas.Tryout, db: Session = Depends(get_db)):
+    to_create = models.mainTO(**buat.dict())
+    db.add(to_create)
+    db.commit()
+    return to_create
+
 @routers.get("", response_model=List[schemas.Tryout])
 def get_to(db: Session = Depends(get_db)):
     to_get = db.query(models.mainTO).all()
@@ -21,22 +28,33 @@ def get_to(db: Session = Depends(get_db)):
 @routers.get("/taken")
 def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
     taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
-    to_details = []
+    to_upcoming = []
+    to_ongoing = []
     #Upcoming
     for idz in taken_get:
         main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id, models.mainTO.startsAt > datetime.now()).scalar()
-        to_details.append(main_to)
-        print(to_details)
+        to_upcoming.append(main_to)
+    for tos in taken_get:
+        ongoing_to = db.query(models.mainTO).filter(models.mainTO.to_id == tos.to_id, models.mainTO.endsAt > datetime.now(), models.mainTO.startsAt <= datetime.now()).scalar()
+        to_ongoing.append(ongoing_to)
     payload = []
     counter = 0
-    while counter < len(to_details):
-        if to_details[counter] != None:
+    while counter < len(to_upcoming):
+        if to_upcoming[counter] != None:
             data = {
-                "to_details": to_details[counter],
-                "taken_details": taken_get[counter]
+                "to_details": to_upcoming[counter],
+                "taken_details": taken_get[counter],
+                "details": "Upcoming"
             }
             counter+=1
             payload.append(data)
+        elif to_ongoing[counter] != None:
+            data = {
+                "to_details": to_ongoing[counter],
+                "taken_details": taken_get[counter],
+                "details": "Ongoing"
+            }
+            counter+=1
         else:
             counter+=1
     return payload
@@ -92,14 +110,6 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     db.commit()
     return objects
 
-@routers.post("/create", response_model=schemas.Tryout)
-def create_to(create: schemas.Tryout, db: Session = Depends(get_db)):
-    to_create = models.mainTO(**create.dict())
-    db.add(to_create)
-    db.commit()
-    db.refresh(to_create)
-    return to_create
-
 @routers.post("/take/{to_slug}", response_model=schemas.Taken)
 def take_to(to_slug: str, take: schemas.Taken, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
@@ -125,7 +135,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         correct = 0
         false = 0
         user_answer = models.draftTO(to_id=id_to, user_id=current_user.user_id, **jawab.dict())
-        draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
+        draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
         draft_user = db.query(models.draftTO.user_id).filter(models.draftTO.user_id == current_user.user_id).limit(1).scalar()
         #Checking if the current user exists in the draft table
         if current == str(draft_user):
@@ -209,3 +219,34 @@ def check(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
     
     else:
         return ("Good luck and have fun!")
+    
+@routers.post("/{to_slug}/start")
+def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    to_duration = db.query(models.mainTO.duration).filter(models.mainTO.to_slug == to_slug).scalar()
+    drafts = db.query(models.draftTO).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
+    if drafts != None:
+        return drafts
+    current = current_user.user_id
+    dueAt = datetime.now() + timedelta(minutes=to_duration)
+    draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
+    db.add(draft_create)
+    db.commit()
+    db.refresh(draft_create)
+    return draft_create
+
+@routers.post("/{to_slug}/ongoing")
+def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    drafts = db.query(models.draftTO.draft_id).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
+    draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
+    add_answers = models.draftTO(draft_id=drafts, to_id=id_to, user_id=current_user.user_id, user_answers=answ.user_answers)
+    if drafts != None:
+        db.delete(draft_content)
+        db.commit()
+        db.add(add_answers)
+        db.commit()
+    else:
+        db.add(add_answers)
+        db.commit()
+    return ("Added!")

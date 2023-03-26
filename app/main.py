@@ -3,6 +3,9 @@ from sqlalchemy.orm import Session
 from .database import engine, get_db
 from .routers import to, user, materi, bs
 from fastapi.middleware.cors import CORSMiddleware
+from . import database
+
+database.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
