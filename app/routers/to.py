@@ -245,7 +245,7 @@ def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depend
     db.refresh(draft_create)
     return draft_create
 
-@routers.get("{to_slug}/start/retrieve")
+@routers.get("/{to_slug}/start/retrieve")
 def getDraft(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     drafts = db.query(models.draftTO).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
