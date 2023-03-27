@@ -240,6 +240,9 @@ def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depend
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
     draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
+    if drafts != None:
+        db.delete(drafts)
+        db.commit()
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)
