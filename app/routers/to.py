@@ -240,13 +240,17 @@ def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depend
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
     draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
-    if drafts != None:
-        db.delete(drafts)
-        db.commit()
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)
     return draft_create
+
+@routers.get("{to_slug}/start/retrieve")
+def getDraft(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
+    drafts = db.query(models.draftTO).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
+    return drafts
+
 
 @routers.post("/{to_slug}/ongoing")
 def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
@@ -268,7 +272,29 @@ def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), cu
 def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     bahas_exist = db.query(models.bahasTO).filter(models.bahasTO.user_id == current_user.user_id, models.bahasTO.to_id == id_to).scalar()
+    ids = []
+    details = []
+    user_ans = []
+    counter = 0
     if bahas_exist != None:
-        return bahas_exist
+        bahas_answ = db.query(models.bahasTO.user_answers).filter(models.bahasTO.user_id == current_user.user_id, models.bahasTO.to_id == id_to).scalar()
+        for bhs in bahas_answ:
+            ids.append(bhs['soal_id'])
+            details.append(bhs['detail'])
+            user_ans.append(bhs['answer'])
+        payload = []
+        while counter < len(ids):
+            list_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == ids[counter])
+            if list_soal == None:
+                break
+            else:
+                data = {
+                    "soal_detail": list_soal,
+                    "details": details[counter],
+                    "user_ans": user_ans[counter]
+                }
+                payload.append(data)
+                counter += 1
+        return payload
     else:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
