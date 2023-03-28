@@ -240,6 +240,8 @@ def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depend
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
     draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
+    print(dueAt)
+    print(draft_create)
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)
@@ -284,9 +286,9 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
         payload = []
         counter = 0
         while counter < len(ids):
-            list_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == ids[counter])
+            list_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == ids[counter]).scalar()
             if list_soal == None:
-                break
+                counter += 1
             elif list_soal != None:
                 data = {
                     "soal_detail": list_soal,
@@ -296,5 +298,6 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
                 payload.append(data)
                 counter+=1
         return payload
+
     else:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
