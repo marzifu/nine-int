@@ -1,10 +1,10 @@
 from typing import List
-from fastapi import APIRouter, Depends, Form, HTTPException, status
-from pydantic import EmailStr
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from .. import schemasTO as schemas, modelsTO as models, auth, modelsBS as bs
+
 
 routers = APIRouter(
     prefix="/users",
@@ -107,9 +107,7 @@ def edit_profile(user: schemas.UpdateUser ,db: Session = Depends(get_db), curren
     user_profile = db.query(models.Users).filter(models.Users.user_id == current_user.user_id).scalar()
     user_prof = db.query(models.Users).filter(models.Users.user_id == current_user.user_id)
     if user_profile.user_id == current_user.user_id:
-
         user_prof.update({"user_name": user.user_name, "phone": user.phone, "address": user.address, "gender": user.gender, "pp_link": user.pp_link}, synchronize_session=False)
         db.commit()
     
     return {"status": 'Success!'}
-

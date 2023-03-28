@@ -275,7 +275,6 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
     ids = []
     details = []
     user_ans = []
-    counter = 0
     if bahas_exist != None:
         bahas_answ = db.query(models.bahasTO.user_answers).filter(models.bahasTO.user_id == current_user.user_id, models.bahasTO.to_id == id_to).scalar()
         for bhs in bahas_answ:
@@ -283,18 +282,19 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
             details.append(bhs['detail'])
             user_ans.append(bhs['answer'])
         payload = []
+        counter = 0
         while counter < len(ids):
             list_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == ids[counter])
             if list_soal == None:
                 break
-            else:
+            elif list_soal != None:
                 data = {
                     "soal_detail": list_soal,
                     "details": details[counter],
                     "user_ans": user_ans[counter]
                 }
                 payload.append(data)
-                counter += 1
+                counter+=1
         return payload
     else:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
