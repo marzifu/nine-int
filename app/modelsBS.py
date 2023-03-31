@@ -26,7 +26,6 @@ class mainBS(Base):
     bs_slug = Column(String, nullable=False, unique=True)
     bs_summary = Column(String, nullable=False)
     published = Column(Boolean, server_default="True")
-    endsAt = Column(TIMESTAMP(timezone=True))
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
 
 class soalBS(Base):
