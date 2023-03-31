@@ -7,7 +7,6 @@ class BankSoal(BaseModel):
     bs_title: str
     bs_slug: str
     bs_summary: str
-    startsAt: datetime
     endsAt: datetime
     class Config:
         orm_mode = True
