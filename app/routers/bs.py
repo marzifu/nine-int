@@ -58,7 +58,7 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
             counter+=1
     return payload
 
-@routers.get("/{bs_slug}", response_model=schemas.Tryout)
+@routers.get("/{bs_slug}", response_model=schemas.BankSoal)
 def get_bs(bs_slug: str, db: Session = Depends(get_db)):
     data_bs = db.query(models.mainBS).filter(models.mainBS.bs_slug == bs_slug).first()
     return data_bs
@@ -116,7 +116,7 @@ def take_bs(bs_slug: str, take: schemas.Taken, db: Session = Depends(get_db), cu
     taken_bs = db.query(models.takenBS.bs_id).filter(models.takenBS.bs_id == current_bs, models.takenBS.user_id == current).limit(1).scalar()
     user_exist = str(db.query(models.takenBS.user_id).filter(models.takenBS.user_id == current_user.user_id).limit(1).scalar())
     if current_bs == taken_bs and user_exist == current:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You have taken this tryout")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You have taken this bank soal")
     bs_taken = models.takenBS(user_id=current_user.user_id,bs_id=current_bs, type=take.type)
     db.add(bs_taken)
     db.commit()
@@ -175,7 +175,7 @@ def submit_bs(bs_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         hasil_exist = db.query(models.hasilBS.hasil_id).filter(models.hasilBS.taken_id == id_taken).limit(1).scalar()
         bs_hasil = db.query(models.hasilBS).filter(models.hasilBS.user_id == current_user.user_id, models.hasilBS.hasil_id == hasil_exist, models.hasilBS.bs_id == id_bs).scalar()
         if bs_hasil != None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this tryout")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="You have already submitted this bank soal")
         else:
             db.add(bahas)
             db.commit()
@@ -192,7 +192,7 @@ def drop_bs(bs_slug: str, db: Session = Depends(get_db),current_user: int = Depe
     taken_bs = taken_query
     
     if taken_bs == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"You have not taken this tryout yet")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"You have not taken this bank soal yet")
     
     if str(taken_bs.user_id) != str(current_user.user_id):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized bs perform action")
@@ -204,12 +204,12 @@ def drop_bs(bs_slug: str, db: Session = Depends(get_db),current_user: int = Depe
 
 @routers.delete("/delete/{bs_slug}")
 def delete_bs(bs_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
-    tryout_slug = db.query(models.mainBS).filter(models.mainBS.bs_slug == bs_slug).limit(1).scalar()
+    banksoal_slug = db.query(models.mainBS).filter(models.mainBS.bs_slug == bs_slug).limit(1).scalar()
 
-    if tryout_slug == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No tryouts found")
+    if banksoal_slug == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No bank soals found")
     else:
-        db.delete(tryout_slug)
+        db.delete(banksoal_slug)
         db.commit()
 
 @routers.get("/results")
@@ -224,7 +224,7 @@ def check(bs_slug: str, db: Session = Depends(get_db), current_user: int = Depen
     user_check = db.query(models.hasilBS).filter(models.hasilBS.user_id == current_user.user_id, models.hasilBS.hasil_id == hasil_exist, models.hasilBS.bs_id == id_bs).scalar()
 
     if user_check != None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You have submitted this tryout!")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You have submitted this bank soal!")
     
     else:
         return ("Good luck and have fun!")
@@ -301,6 +301,6 @@ def pembahasan(bs_slug: str, db: Session = Depends(get_db), current_user: int = 
         return payload
 
     else:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this bank soal yet.")
 
 
