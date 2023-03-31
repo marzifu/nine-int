@@ -7,24 +7,26 @@ from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 class takenBS(Base):
     __tablename__ = "bs_taken"
 
-    taken_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    taken_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     status = Column(Integer, server_default="1")
-    type = Column(Integer)
     #1 = taken
     #2 = ongoing
     #3 = finished
+    type = Column(Integer)
     takenAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
     finishAt = Column(TIMESTAMP(timezone=True), nullable=True)
 
 class mainBS(Base):
     __tablename__ = "bs_main"
 
-    bs_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    bs_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     bs_title = Column(String, nullable=False)
     bs_slug = Column(String, nullable=False, unique=True)
+    bs_summary = Column(String, nullable=False)
     published = Column(Boolean, server_default="True")
+    duration = Column(Integer, nullable=False)
     startsAt = Column(TIMESTAMP(timezone=True))
     endsAt = Column(TIMESTAMP(timezone=True))
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
@@ -32,7 +34,7 @@ class mainBS(Base):
 class soalBS(Base):
     __tablename__ = "bs_soal"
 
-    soal_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    soal_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     type = Column(Integer, nullable=False)
     #4 tipe soal
@@ -52,34 +54,36 @@ class soalBS(Base):
 class draftBS(Base):
     __tablename__ = "bs_draft"
 
-    draft_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    draft_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     soal_struct = Column(ARRAY(String))
-    #Storage untuk struktur soal sesuai tipe
+    #Sbsrage untuk struktur soal sesuai tipe
     user_answers = Column(JSONB)
-    #Storage buat jawaban user
+    #Sbsrage buat jawaban user
+    duration = Column(TIMESTAMP(timezone=True))
 
 class bahasBS(Base):
     __tablename__ = "bs_bahas"
 
-    bahas_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    bahas_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False) 
     soal_struct = Column(ARRAY(String))
-    #Storage untuk struktur soal dari draft
-    user_answers = Column(ARRAY(JSONB))
-    #Storage buat jawaban user
+    #Sbsrage untuk struktur soal dari draft
+    user_answers = Column(JSONB)
+    #Sbsrage buat jawaban user
     video_url = Column(String)
 
 class hasilBS(Base):
     __tablename__ = "bs_hasil"
 
-    hasil_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    hasil_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    taken_id = Column(Integer, ForeignKey("to_taken.taken_id", ondelete="CASCADE"), nullable=False)
-    totalCorrect = Column(Integer)
-    totalFalse = Column(Integer)
+    taken_id = Column(Integer, ForeignKey("bs_taken.taken_id", ondelete="CASCADE"), nullable=False)
+    bstalCorrect = Column(Integer)
+    bstalFalse = Column(Integer)
     score = Column(Integer)
 
 
