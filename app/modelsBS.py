@@ -34,7 +34,7 @@ class mainBS(Base):
 class soalBS(Base):
     __tablename__ = "bs_soal"
 
-    soal_id = Column(Integer, primary_key=True, nullable=False, autosincrement=True)
+    soal_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     type = Column(Integer, nullable=False)
     #4 tipe soal
