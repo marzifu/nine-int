@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, String, ARRAY, Boolean, TIMESTAMP
 class takenBS(Base):
     __tablename__ = "bs_taken"
 
-    taken_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    taken_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     status = Column(Integer, server_default="1")
@@ -21,7 +21,7 @@ class takenBS(Base):
 class mainBS(Base):
     __tablename__ = "bs_main"
 
-    bs_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    bs_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     bs_title = Column(String, nullable=False)
     bs_slug = Column(String, nullable=False, unique=True)
     bs_summary = Column(String, nullable=False)
@@ -34,7 +34,7 @@ class mainBS(Base):
 class soalBS(Base):
     __tablename__ = "bs_soal"
 
-    soal_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    soal_id = Column(Integer, primary_key=True, nullable=False, autosincrement=True)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     type = Column(Integer, nullable=False)
     #4 tipe soal
@@ -54,7 +54,7 @@ class soalBS(Base):
 class draftBS(Base):
     __tablename__ = "bs_draft"
 
-    draft_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    draft_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     soal_struct = Column(ARRAY(String))
@@ -66,7 +66,7 @@ class draftBS(Base):
 class bahasBS(Base):
     __tablename__ = "bs_bahas"
 
-    bahas_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    bahas_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False) 
     soal_struct = Column(ARRAY(String))
@@ -78,7 +78,7 @@ class bahasBS(Base):
 class hasilBS(Base):
     __tablename__ = "bs_hasil"
 
-    hasil_id = Column(Integer, primary_key=True, nullable=False, aubsincrement=True)
+    hasil_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     taken_id = Column(Integer, ForeignKey("bs_taken.taken_id", ondelete="CASCADE"), nullable=False)
