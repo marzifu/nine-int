@@ -279,6 +279,7 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
     user_ans = []
     if bahas_exist != None:
         bahas_answ = db.query(models.bahasTO.user_answers).filter(models.bahasTO.user_id == current_user.user_id, models.bahasTO.to_id == id_to).scalar()
+        score_to = db.query(models.hasilTO.score).filter(models.hasilTO.to_id == id_to, models.hasilTO.user_id == current_user.user_id).scalar()
         for bhs in bahas_answ:
             ids.append(bhs['soal_id'])
             details.append(bhs['detail'])
@@ -293,7 +294,8 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
                 data = {
                     "soal_detail": list_soal,
                     "details": details[counter],
-                    "user_ans": user_ans[counter]
+                    "user_ans": user_ans[counter],
+                    "score": score_to
                 }
                 payload.append(data)
                 counter+=1
