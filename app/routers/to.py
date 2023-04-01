@@ -99,7 +99,7 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
             objects.append(soal_create)
         #Kalau data tidak memiliki soal_id dan tidak ada data kosong maka post data baru!
         else:
-            id_soal = db.query(models.soalTO).filter(models.soalTO.soal_id == id_dict)
+            id_soal = db.query(models.soalTO).filter(models.soalTO.to_id == id_dict)
             for id in id_soal:
                 tba_del = db.query(models.soalTO).filter(models.soalTO.soal_id == id.soal_id).limit(1).scalar()
                 db.delete(tba_del)
