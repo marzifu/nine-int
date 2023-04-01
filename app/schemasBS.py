@@ -11,6 +11,7 @@ class BankSoal(BaseModel):
         orm_mode = True
 
 class Soal(BaseModel):
+    soal_id: Optional[int] = None
     type: int
     mapel: int
     content: str

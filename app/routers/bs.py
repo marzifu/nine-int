@@ -99,13 +99,11 @@ def create_soal(bs_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
         #Kalau data tidak memiliki soal_id dan tidak ada data kosong maka post data baru!
         else:
             id_soal = db.query(models.soalBS).filter(models.soalBS.bs_id == id_dict)
-            print(id.soal_id)
             for id in id_soal:
                 tba_del = db.query(models.soalBS).filter(models.soalBS.soal_id == id.soal_id).limit(1).scalar()
                 db.delete(tba_del)
                 db.commit()
             objects.append(soal_create)
-            print(soal_create.soal_id)
     db.bulk_save_objects(objects)
     db.commit()
     return objects
