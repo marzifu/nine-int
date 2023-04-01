@@ -105,7 +105,6 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
                 db.delete(tba_del)
                 db.commit()
             objects.append(soal_create)
-            print(soal_create.soal_id)
     db.bulk_save_objects(objects)
     db.commit()
     return objects
