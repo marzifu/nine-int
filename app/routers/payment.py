@@ -18,6 +18,6 @@ def payment(amount: int):
         order_id='your_order_id',
         gross_amount=amount,
         item_details=item_details,
-        customer_details=customer_details
+        customer_details=db.query(midtrans)
     )
     return {'payment_url': payment_url}
