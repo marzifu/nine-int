@@ -1,5 +1,5 @@
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
@@ -30,13 +30,22 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
     taken_get = db.query(models.takenTO).filter(models.takenTO.user_id == current_user.user_id).all()
     to_upcoming = []
     to_ongoing = []
+    ids = []
     #Upcoming
     for idz in taken_get:
-        main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id, models.mainTO.startsAt > datetime.now()).scalar()
-        to_upcoming.append(main_to)
-    for tos in taken_get:
-        ongoing_to = db.query(models.mainTO).filter(models.mainTO.to_id == tos.to_id, models.mainTO.endsAt > datetime.now(), models.mainTO.startsAt <= datetime.now()).scalar()
-        to_ongoing.append(ongoing_to)
+        main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id).scalar()
+        if main_to.startsAt > datetime.now(timezone.utc):
+            print("ini upcoming")
+            print(main_to.startsAt, "ini startnya")
+            print(main_to.endsAt, "ini ending")
+            print(datetime.now(timezone.utc), "ini sekarang")
+            to_upcoming.append(main_to)
+        elif main_to.endsAt > datetime.now(timezone.utc) and main_to.startsAt <= datetime.now(timezone.utc):
+            print("ini ongoing")
+            print(main_to.startsAt, "ini startnya")
+            print(main_to.endsAt, "ini ending")
+            print(datetime.now(timezone.utc), "ini sekarang")
+            to_ongoing.append(main_to)
     payload = []
     counter = 0
     while counter < len(to_upcoming):
@@ -48,15 +57,22 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
             }
             counter+=1
             payload.append(data)
-        elif to_ongoing[counter] != None:
+        else:
+            counter+=1
+            payload.append(data)
+    counter = 0
+    while counter < len(to_ongoing):
+        if to_ongoing[counter] != None:
             data = {
                 "to_details": to_ongoing[counter],
                 "taken_details": taken_get[counter],
                 "details": "Ongoing"
             }
             counter+=1
+            payload.append(data)
         else:
             counter+=1
+            payload.append(data)
     return payload
 
 @routers.get("/{to_slug}", response_model=schemas.Tryout)
