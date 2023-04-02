@@ -19,7 +19,7 @@ def testung(order: schemas.Payment, db: Session = Depends(get_db)):
 
     param = {
         "transaction_details": {
-            "order_id": "test-transaction-12",
+            "order_id": order.order_id,
             "gross_amount": 200000
         }, "credit_card":{
             "secure" : True
