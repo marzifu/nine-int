@@ -35,16 +35,8 @@ def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.c
     for idz in taken_get:
         main_to = db.query(models.mainTO).filter(models.mainTO.to_id == idz.to_id).scalar()
         if main_to.startsAt > datetime.now(timezone.utc):
-            print("ini upcoming")
-            print(main_to.startsAt, "ini startnya")
-            print(main_to.endsAt, "ini ending")
-            print(datetime.now(timezone.utc), "ini sekarang")
             to_upcoming.append(main_to)
         elif main_to.endsAt > datetime.now(timezone.utc) and main_to.startsAt <= datetime.now(timezone.utc):
-            print("ini ongoing")
-            print(main_to.startsAt, "ini startnya")
-            print(main_to.endsAt, "ini ending")
-            print(datetime.now(timezone.utc), "ini sekarang")
             to_ongoing.append(main_to)
     payload = []
     counter = 0
