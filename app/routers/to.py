@@ -175,8 +175,9 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
                 pembahasan.append(false_ans)
                 false+=1
                 counter+=1
-        counter = 0    
-        finalScore = correct * 2
+        counter = 0
+        
+        finalScore = (correct / len(cor)) * 100
         final = models.hasilTO(user_id=current, to_id=id_to, taken_id=id_taken, totalCorrect=correct, totalFalse=false, score=finalScore)
         bahas = models.bahasTO(user_id=current, to_id=id_to, user_answers=pembahasan)
         #Final check if user in hasil table exists with the hasil id existing

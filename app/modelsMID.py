@@ -33,3 +33,11 @@ class Payment(Base):
     # city
     # postal_code
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
+
+class Items(Base):
+    __tablename__ = "items"
+
+    item_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    price = Column(Integer, nullable=False)
+    item_name = Column(String, nullable=False)
+    createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))

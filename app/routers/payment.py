@@ -1,34 +1,72 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
-from sqlalchemy import null
+from pydantic import PaymentCardNumber
+from sqlalchemy import desc, null
 from sqlalchemy.orm import Session
 from ..database import get_db
-from .. import midtrans as mid, modelsMID as models, schemasMID as schemas
+from .. import midtrans as mid, modelsMID as models, schemasMID as schemas, auth
 
 routers = APIRouter(
     prefix="/payment",
     tags=['Payment']
 )
 
+@routers.get("/items", response_model=List[schemas.Items])
+def items(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    item = db.query(models.Items).all()
+    return item
+
+@routers.get("/items/{id}", response_model=schemas.Items)
+def oneItem(id: int, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    one_items = db.query(models.Items).filter(models.Items.item_id == id).scalar()
+    return one_items
+
 @routers.post("")
-def testung(order: schemas.Payment, db: Session = Depends(get_db)):
-    payments = models.Payment(**order.dict())
-    print(payments)
+def payment(order: schemas.Payment, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    current = str(current_user.user_id)
+    payments = models.Payment(user_id=current,**order.dict())
+    db.add(payments)
+    db.commit()
+    db.refresh(payments)
+
+    orders = db.query(models.Payment.order_id).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.order_id)).first()
+    orderId = []
+    orderId.append(orders.order_id)
 
     param = {
-        "transaction_details": {
-            "order_id": order.order_id,
-            "gross_amount": 200000
-        }, "credit_card":{
-            "secure" : True
-        }, "customer_details":{
-            "first_name": "budi",
-            "last_name": "pratama",
-            "email": "budi.pra@example.com",
-            "phone": "08111222333"
-        }
+            "transaction_details":{
+                "order_id": orderId[0],
+                "gross_amount": payments.order_details['price']
+            },
+            "user_id": str(current_user.user_id),
+            "order_details": {
+                "item_id": payments.order_details['item_id'],
+                "price": payments.order_details['price'],
+                "item_name": payments.order_details['item_name'],
+                "quantity": 1
+            },
+            "customer_details": {
+                "first_name": payments.customer_details['first_name'],
+                "last_name": payments.customer_details['last_name'],
+                "email": payments.customer_details['email'],
+                "phone": payments.customer_details['phone']
+            },
+            "billing_address": {
+                "first_name": payments.billing_address['first_name'],
+                "last_name": payments.billing_address['last_name'],
+                "address": payments.billing_address['address'],
+                "city": payments.billing_address['city'],
+                "postal_code": payments.billing_address['postal_code']
+            },
+            "shipping_address": {
+                "first_name": payments.shipping_address['first_name'],
+                "last_name": payments.shipping_address['last_name'],
+                "address": payments.shipping_address['address'],
+                "city": payments.shipping_address['city'],
+                "postal_code": payments.shipping_address['postal_code']
+            }
     }
 
     transaction = mid.MidtransAPI.snap.create_transaction(param)

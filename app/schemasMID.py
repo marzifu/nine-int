@@ -4,9 +4,8 @@ from pydantic import UUID4, BaseModel, EmailStr
 
 class OrderDetails(BaseModel):
     item_id: int
-    price: float
+    price: int
     item_name: str
-    quantity: int
 
 class CustomerDetails(BaseModel):
     first_name: str
@@ -30,7 +29,6 @@ class ShippingAddress(BaseModel):
 
 class Payment(BaseModel):
     order_id: Optional[int] = None
-    user_id: Optional[UUID4] = None
     order_details: OrderDetails
     customer_details: CustomerDetails
     billing_address: BillingAddress
@@ -38,3 +36,8 @@ class Payment(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Items(BaseModel):
+    item_id: int
+    price: int
+    item_name: str
