@@ -27,7 +27,20 @@ def get_bs(db: Session = Depends(get_db)):
 @routers.get("/taken")
 def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
     taken_get = db.query(models.takenBS).filter(models.takenBS.user_id == current_user.user_id).all()
-    return taken_get
+    bs_taken = []
+    for idz in taken_get:
+        main_bs = db.query(models.mainBS).filter(models.mainBS.bs_id == idz.bs_id).scalar()
+        bs_taken.append(main_bs)
+    payload = []
+    counter = 0
+    while counter < len(bs_taken):
+        data = {
+            "bs_details": bs_taken[counter],
+            "taken_details": taken_get[counter]
+        }
+        counter+=1
+        payload.append(data)
+    return payload
 
 @routers.get("/{bs_slug}", response_model=schemas.BankSoal)
 def get_bs(bs_slug: str, db: Session = Depends(get_db)):
