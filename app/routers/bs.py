@@ -27,36 +27,7 @@ def get_bs(db: Session = Depends(get_db)):
 @routers.get("/taken")
 def get_taken(db: Session = Depends(get_db), current_user: int = Depends (auth.current_user)):
     taken_get = db.query(models.takenBS).filter(models.takenBS.user_id == current_user.user_id).all()
-    bs_upcoming = []
-    bs_ongoing = []
-    #Upcoming
-    for idz in taken_get:
-        main_bs = db.query(models.mainBS).filter(models.mainBS.bs_id == idz.bs_id, models.mainBS.startsAt > datetime.now()).scalar()
-        bs_upcoming.append(main_bs)
-    for bss in taken_get:
-        ongoing_bs = db.query(models.mainBS).filter(models.mainBS.bs_id == bss.bs_id, models.mainBS.endsAt > datetime.now(), models.mainBS.startsAt <= datetime.now()).scalar()
-        bs_ongoing.append(ongoing_bs)
-    payload = []
-    counter = 0
-    while counter < len(bs_upcoming):
-        if bs_upcoming[counter] != None:
-            data = {
-                "bs_details": bs_upcoming[counter],
-                "taken_details": taken_get[counter],
-                "details": "Upcoming"
-            }
-            counter+=1
-            payload.append(data)
-        elif bs_ongoing[counter] != None:
-            data = {
-                "bs_details": bs_ongoing[counter],
-                "taken_details": taken_get[counter],
-                "details": "Ongoing"
-            }
-            counter+=1
-        else:
-            counter+=1
-    return payload
+    return taken_get
 
 @routers.get("/{bs_slug}", response_model=schemas.BankSoal)
 def get_bs(bs_slug: str, db: Session = Depends(get_db)):
