@@ -19,6 +19,18 @@ class Users(Base):
     password = Column(String, nullable=False)
     createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
 
+class Admin(Base):
+    __tablename__ = "admin"
+
+    admin_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, server_default=text("gen_random_uuid()"))
+    admin_name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    admin_email = Column(String, nullable=False, unique=True)
+    gender = Column(String)
+    address = Column(String)
+    password = Column(String, nullable=False)
+    createdAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
+
 class takenTO(Base):
     __tablename__ = "to_taken"
 
@@ -72,7 +84,7 @@ class draftTO(Base):
     draft_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     to_id = Column(Integer, ForeignKey("to_main.to_id", ondelete="CASCADE"), nullable=False)
-    soal_struct = Column(ARRAY(String))
+    soal_struct = Column(JSONB)
     #Storage untuk struktur soal sesuai tipe
     user_answers = Column(JSONB)
     #Storage buat jawaban user
@@ -100,6 +112,8 @@ class hasilTO(Base):
     totalCorrect = Column(Integer)
     totalFalse = Column(Integer)
     score = Column(Integer)
+
+
 
 
 

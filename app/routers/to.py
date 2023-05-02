@@ -1,11 +1,13 @@
 
 from datetime import datetime, timedelta, timezone
+from math import ceil
 from fastapi import HTTPException, Response, status
-from typing import List
+from typing import Counter, List
 from fastapi import APIRouter, Depends
-from sqlalchemy import null
+from sqlalchemy import asc, desc, null
 from sqlalchemy.orm import Session
 from ..database import get_db
+from random import choice
 from .. import schemasTO as schemas, modelsTO as models, auth
 
 routers = APIRouter(
@@ -153,7 +155,7 @@ def submit_to(to_slug: str, jawab: schemas.Jawab, db: Session = Depends(get_db),
         else:
             db.add(user_answer)
             db.commit()
-            db.refresh()
+            db.refresh(user_answer)
         correction = db.query(models.draftTO.user_answers).filter(models.draftTO.user_id == current, models.draftTO.to_id == id_to).scalar()
         #Main correction function
         ansIds = []
@@ -239,17 +241,128 @@ def check(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
         return ("Good luck and have fun!")
     
 @routers.post("/{to_slug}/start")
-def start(to_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     to_duration = db.query(models.mainTO.duration).filter(models.mainTO.to_slug == to_slug).scalar()
+    type = db.query(models.takenTO.type).filter(models.takenTO.to_id == id_to, models.takenTO.user_id == current_user.user_id).scalar()
     drafts = db.query(models.draftTO).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
+    qs = []
+    qz = {}
+    #tick counter and soal numbering
+    counter = 0
+    cids = 0
+    #soal tidak diacak sama sekali
+    if type == 1:
+        soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
+        soal1 = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).order_by(asc(models.soalTO.soal_id)).limit(1).scalar()
+        lenn = len(soal)
+        while counter < lenn:
+            ids = soal1 + cids
+            soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+            if soals != None:
+                soal_key = "soal_" + str(counter + 1)
+                qz[soal_key] = soals
+                cids += 1
+                counter += 1
+            else:
+                counter += 1
+                cids = counter + 1
+        qs.append(qz)
+    #soal diacak 50/50
+    elif type == 2:
+        soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
+        soal1 = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).order_by(asc(models.soalTO.soal_id)).limit(1).scalar()
+        lenn = len(soal)
+        #total soal numbers
+        snum = len(soal)
+        lend = ceil(lenn / 2)
+        while counter <= lenn:
+            if counter < lend:
+                ids = soal1 + cids
+                soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+                if soals != None:
+                    soal_key = "soal_" + str(counter + 1)
+                    qz[soal_key] = soals
+                    cids += 1
+                    counter += 1
+                else:
+                    cids = counter + 1
+                    counter += 1
+            elif counter >= lend:
+                ids = soal1 + snum
+                soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+                if soals != None:
+                    soal_key = "soal_" + str(counter + 1)
+                    if counter == lenn:
+                        soal_key = "soal_" + str(counter)
+                    qz[soal_key] = soals
+                    snum -= 1
+                    counter += 1
+                else:
+                    snum -= 1
+                    counter += 1
+        qs.append(qz)
+    #1/2 soal diacak, setengah awal soal dibalik dan setengah akhir soal dibalik.
+    elif type == 3:
+        soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
+        soal1 = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).order_by(asc(models.soalTO.soal_id)).limit(1).scalar()
+        lenn = len(soal)
+        #total soal numbers
+        snum = len(soal)
+        lend = ceil(lenn / 2)
+        cids = lend
+        while counter <= lenn:
+            if counter <= lend:
+                ids = soal1 + cids
+                soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+                if soals != None:
+                    soal_key = "soal_" + str(counter + 1)
+                    qz[soal_key] = soals
+                    cids -= 1
+                    counter += 1
+                else:
+                    cids -= 1
+                    counter += 1
+            elif counter >= lend:
+                ids = soal1 + snum
+                soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+                if soals != None:
+                    soal_key = "soal_" + str(counter + 1)
+                    if counter == lenn:
+                        soal_key = "soal_" + str(counter)
+                    qz[soal_key] = soals
+                    snum -= 1
+                    counter += 1
+                else:
+                    snum -= 1
+                    counter += 1
+        qs.append(qz)
+    # 100% acak
+    elif type == 4:
+        rando = []
+        soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
+        soal1 = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).order_by(asc(models.soalTO.soal_id)).limit(1).scalar()
+        lenn = len(soal)
+        while counter < lenn:
+            rands = choice([i for i in range(0, lenn) if i not in [rando]])
+            rando.append(rands)
+            ids = soal1 + rands
+            print(ids)
+            soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
+            if soals != None:
+                soal_key = "soal_" + str(counter + 1)
+                qz[soal_key] = soals
+                counter += 1
+            else:
+                counter += 1
+        qs.append(qz)
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The specified typep is invalid") 
     if drafts != None:
         return drafts
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
-    draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
-    print(dueAt)
-    print(draft_create)
+    draft_create = models.draftTO(soal_struct=qs, to_id=id_to, user_id=current, duration=dueAt)
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)

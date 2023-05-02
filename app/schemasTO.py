@@ -1,12 +1,21 @@
 
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from pydantic import UUID4, BaseModel, EmailStr
 
 
 class Users(BaseModel):
     user_name: str
     user_email: EmailStr
+    password: str
+    phone: str
+
+    class Config:
+        orm_mode = True
+
+class Admin(BaseModel):
+    admin_name: str
+    admin_email: str
     password: str
     phone: str
 
@@ -83,8 +92,11 @@ class Hasil(BaseModel):
     totalFalse: int
     score: int
 
+class Answers(BaseModel):
+    soal_id: int
+    answer: str
 class Jawab(BaseModel):
-    user_answers: list
+    user_answers: List[Answers]
 
 class Draft(BaseModel):
     user_answers: Optional[list]
@@ -99,5 +111,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[UUID4]
+
 
 
