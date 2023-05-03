@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 from .database import engine, get_db
-from .routers import to, user, bs, payment
+from .routers import to, user, bs, payment, admin
 from fastapi.middleware.cors import CORSMiddleware
 from . import database
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +27,7 @@ app.include_router(user.routers)
 app.include_router(to.routers)
 app.include_router(bs.routers)
 app.include_router(payment.routers)
+app.include_router(admin.routers)
 
 
 @app.get("/")
