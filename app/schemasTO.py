@@ -35,8 +35,8 @@ class getUsers(BaseModel):
     user_id: UUID4
     user_name: str
     user_email: str
-    address: str
-    gender: str
+    address: Optional[str] = None
+    gender: Optional[str] = None
     class Config:
         orm_mode = True
 
