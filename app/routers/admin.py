@@ -32,5 +32,16 @@ def log_user(admin: OAuth2PasswordRequestForm = Depends(), db: Session = Depends
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")
     
     uid = str(login.user_id)
-    access_token = auth.create_token(data = {"admin_id": uid})
+    access_token = auth.create_token(data = {"user_id": uid})
     return {"token": access_token, "token_type": "bearer"}
+
+@routers.get("/profile", response_model=schemas.getUsers)
+def user_by_id(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    #Menyamakan object dari UUID ke String
+    current=str(current_user.user_id)
+    user_get = db.query(models.Users).filter(models.Users.user_id == current).first()
+    user_db = str(user_get.user_id)
+    if current == user_db:
+        return user_get
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No permission")
