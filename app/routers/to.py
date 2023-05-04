@@ -362,7 +362,7 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
         return drafts
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
-    draft_create = models.draftTO(soal_struct=qs, to_id=id_to, user_id=current, duration=dueAt)
+    draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)
