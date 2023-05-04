@@ -65,7 +65,7 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
         to_ids.append(idz.to_id)
     for ids in hasil_bs:
         bs_hasil.append(ids)
-        bs_ids.append(ids)
+        bs_ids.append(ids.bs_id)
     payload = []
     counter = 0
     lenTO = len(to_hasil)
