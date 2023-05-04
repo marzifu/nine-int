@@ -69,8 +69,9 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     payload = []
     counter = 0
     lenTO = len(to_hasil)
+    lenBS = len(bs_hasil)
 
-    if bs_hasil == [] and to_hasil != []:
+    if bs_hasil != [] or to_hasil != []:
         counter = 0
         while counter < lenTO:
             details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
@@ -80,9 +81,8 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             }
             payload.append(data)
             counter += 1
-    elif bs_hasil != [] and to_hasil == []:
         counter = 0
-        while counter < lenTO:
+        while counter < lenBS:
             details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
             data = {
                 "bs_hasil": bs_hasil[counter],
@@ -90,6 +90,16 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             }
             payload.append(data)
             counter += 1
+    # elif bs_hasil != [] and to_hasil == []:
+    #     counter = 0
+    #     while counter < lenBS:
+    #         details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
+    #         data = {
+    #             "bs_hasil": bs_hasil[counter],
+    #             "bs_details": details_bs
+    #         }
+    #         payload.append(data)
+    #         counter += 1
     # elif bs_hasil != [] and to_hasil != []:
     #     while counter < lenTO:
     #         details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
