@@ -70,8 +70,8 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     counter = 0
     lenTO = len(to_hasil)
 
-    counter = 0
     if bs_hasil == [] and to_hasil != []:
+        counter = 0
         while counter < lenTO:
             details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
             data = {
@@ -81,6 +81,7 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             payload.append(data)
             counter += 1
     elif bs_hasil != [] and to_hasil == []:
+        counter = 0
         while counter < lenTO:
             details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
             data = {
@@ -89,18 +90,18 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
             }
             payload.append(data)
             counter += 1
-    elif bs_hasil != [] and to_hasil != []:
-        while counter < lenTO:
-            details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
-            details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
-            data = {
-                "to_hasil": to_hasil[counter],
-                "bs_hasil": bs_hasil[counter],
-                "to_details": details_to,
-                "bs_details": details_bs
-            }
-            payload.append(data)
-            counter += 1
+    # elif bs_hasil != [] and to_hasil != []:
+    #     while counter < lenTO:
+    #         details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
+    #         details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
+    #         data = {
+    #             "to_hasil": to_hasil[counter],
+    #             "bs_hasil": bs_hasil[counter],
+    #             "to_details": details_to,
+    #             "bs_details": details_bs
+    #         }
+    #         payload.append(data)
+    #         counter += 1
     return payload
 
 @routers.put("/profile/edit")
