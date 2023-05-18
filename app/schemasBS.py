@@ -46,11 +46,9 @@ class Jawab(BaseModel):
     user_answers: list
 
 class Draft(BaseModel):
-    soal_struct: list
     user_answers: list
 
 class Bahas(BaseModel):
-    soal_struct: str
     user_answers: str
 
 class Token(BaseModel):
