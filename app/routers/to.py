@@ -1,6 +1,7 @@
 
 from datetime import datetime, timedelta, timezone
 from math import ceil
+import random
 from fastapi import HTTPException, Response, status
 from typing import Counter, List
 from fastapi import APIRouter, Depends
@@ -119,15 +120,16 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     db.commit()
     return objects
 
-@routers.post("/take/{to_slug}", response_model=schemas.Taken)
-def take_to(to_slug: str, take: schemas.Taken, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+@routers.post("/take/{to_slug}")
+def take_to(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
     current_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     taken_to = db.query(models.takenTO.to_id).filter(models.takenTO.to_id == current_to, models.takenTO.user_id == current).limit(1).scalar()
     user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
+    rand = random.randint(1, 4)
     if current_to == taken_to and user_exist == current:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You have taken this tryout")
-    to_taken = models.takenTO(user_id=current_user.user_id,to_id=current_to, type=take.type)
+    to_taken = models.takenTO(user_id=current_user.user_id,to_id=current_to, type=rand)
     db.add(to_taken)
     db.commit()
     db.refresh(to_taken)
@@ -344,10 +346,9 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
         soal1 = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).order_by(asc(models.soalTO.soal_id)).limit(1).scalar()
         lenn = len(soal)
         while counter < lenn:
-            rands = choice([i for i in range(0, lenn) if i not in [rando]])
+            rands = choice([i for i in range(0, lenn) if i not in rando])
             rando.append(rands)
             ids = soal1 + rands
-            print(ids)
             soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
             if soals != None:
                 soal_key = "soal_" + str(counter + 1)
@@ -357,12 +358,12 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
                 counter += 1
         qs.append(qz)
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The specified typep is invalid") 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The specified type is invalid") 
     if drafts != None:
         return drafts
     current = current_user.user_id
     dueAt = datetime.now() + timedelta(minutes=to_duration)
-    draft_create = models.draftTO(to_id=id_to, user_id=current, duration=dueAt)
+    draft_create = models.draftTO(soal_struct=qs, to_id=id_to, user_id=current, duration=dueAt)
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)
@@ -380,7 +381,8 @@ def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), cu
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     drafts = db.query(models.draftTO.draft_id).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
     draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
-    add_answers = models.draftTO(draft_id=drafts, to_id=id_to, user_id=current_user.user_id, user_answers=answ.user_answers)
+    soal_str = db.query(models.draftTO.soal_struct).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).scalar()
+    add_answers = models.draftTO(draft_id=drafts, soal_struct=soal_str, to_id=id_to, user_id=current_user.user_id, user_answers=answ.user_answers)
     if drafts != None:
         db.delete(draft_content)
         db.commit()

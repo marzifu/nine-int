@@ -14,7 +14,6 @@ class takenBS(Base):
     #1 = taken
     #2 = ongoing
     #3 = finished
-    type = Column(Integer)
     takenAt = Column(TIMESTAMP(timezone=True), server_default=text("now()"))
     finishAt = Column(TIMESTAMP(timezone=True), nullable=True)
 
@@ -54,11 +53,8 @@ class draftBS(Base):
     draft_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     bs_id = Column(Integer, ForeignKey("bs_main.bs_id", ondelete="CASCADE"), nullable=False)
-    soal_struct = Column(ARRAY(String))
-    #Sbsrage untuk struktur soal sesuai tipe
     user_answers = Column(JSONB)
     #Sbsrage buat jawaban user
-    duration = Column(TIMESTAMP(timezone=True))
 
 class bahasBS(Base):
     __tablename__ = "bs_bahas"

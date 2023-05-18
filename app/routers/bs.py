@@ -92,15 +92,15 @@ def create_soal(bs_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
     db.commit()
     return objects
 
-@routers.post("/take/{bs_slug}", response_model=schemas.Taken)
-def take_bs(bs_slug: str, take: schemas.Taken, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+@routers.post("/take/{bs_slug}")
+def take_bs(bs_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
     current_bs = db.query(models.mainBS.bs_id).filter(models.mainBS.bs_slug == bs_slug).scalar()
     taken_bs = db.query(models.takenBS.bs_id).filter(models.takenBS.bs_id == current_bs, models.takenBS.user_id == current).limit(1).scalar()
     user_exist = str(db.query(models.takenBS.user_id).filter(models.takenBS.user_id == current_user.user_id).limit(1).scalar())
     if current_bs == taken_bs and user_exist == current:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"You have taken this bank soal")
-    bs_taken = models.takenBS(user_id=current_user.user_id,bs_id=current_bs, type=take.type)
+    bs_taken = models.takenBS(user_id=current_user.user_id,bs_id=current_bs)
     db.add(bs_taken)
     db.commit()
     db.refresh(bs_taken)
@@ -215,15 +215,11 @@ def check(bs_slug: str, db: Session = Depends(get_db), current_user: int = Depen
 @routers.post("/{bs_slug}/start")
 def start(bs_slug:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     id_bs = db.query(models.mainBS.bs_id).filter(models.mainBS.bs_slug == bs_slug).scalar()
-    bs_duration = db.query(models.mainBS.duration).filter(models.mainBS.bs_slug == bs_slug).scalar()
     drafts = db.query(models.draftBS).filter(models.draftBS.bs_id == id_bs, models.draftBS.user_id == current_user.user_id).scalar()
     if drafts != None:
         return drafts
     current = current_user.user_id
-    dueAt = datetime.now() + timedelta(minutes=bs_duration)
-    draft_create = models.draftBS(bs_id=id_bs, user_id=current, duration=dueAt)
-    print(dueAt)
-    print(draft_create)
+    draft_create = models.draftBS(bs_id=id_bs, user_id=current)
     db.add(draft_create)
     db.commit()
     db.refresh(draft_create)

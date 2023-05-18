@@ -76,11 +76,6 @@ class getSoal(BaseModel):
     class Config:
         orm_mode = True
 
-class Taken(BaseModel):
-    type: int
-    class Config:
-        orm_mode = True
-
 class getAmbil(BaseModel):
     to_id: int
     status: int
