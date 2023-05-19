@@ -382,7 +382,8 @@ def ongoing(to_slug: str, answ: schemas.Draft, db: Session = Depends(get_db), cu
     drafts = db.query(models.draftTO.draft_id).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
     draft_content = db.query(models.draftTO).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).limit(1).scalar()
     soal_str = db.query(models.draftTO.soal_struct).filter(models.draftTO.user_id == current_user.user_id, models.draftTO.to_id == id_to).scalar()
-    add_answers = models.draftTO(draft_id=drafts, soal_struct=soal_str, to_id=id_to, user_id=current_user.user_id, user_answers=answ.user_answers)
+    dura = db.query(models.draftTO.duration).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
+    add_answers = models.draftTO(draft_id=drafts, soal_struct=soal_str, to_id=id_to, user_id=current_user.user_id, user_answers=answ.user_answers, duration=dura)
     if drafts != None:
         db.delete(draft_content)
         db.commit()
