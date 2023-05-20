@@ -249,7 +249,6 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
     type = db.query(models.takenTO.type).filter(models.takenTO.to_id == id_to, models.takenTO.user_id == current_user.user_id).scalar()
     drafts = db.query(models.draftTO).filter(models.draftTO.to_id == id_to, models.draftTO.user_id == current_user.user_id).scalar()
     qs = []
-    qz = {}
     #tick counter and soal numbering
     counter = 0
     cids = 0
@@ -262,14 +261,12 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
             ids = soal1 + cids
             soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
             if soals != None:
-                soal_key = "soal_" + str(counter + 1)
-                qz[soal_key] = soals
+                qs.append(str(soals))
                 cids += 1
                 counter += 1
             else:
                 counter += 1
                 cids = counter + 1
-        qs.append(qz)
     #soal diacak 50/50
     elif type == 2:
         soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
@@ -283,8 +280,7 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
                 ids = soal1 + cids
                 soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
                 if soals != None:
-                    soal_key = "soal_" + str(counter + 1)
-                    qz[soal_key] = soals
+                    qs.append(str(soals))
                     cids += 1
                     counter += 1
                 else:
@@ -294,16 +290,12 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
                 ids = soal1 + snum
                 soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
                 if soals != None:
-                    soal_key = "soal_" + str(counter + 1)
-                    if counter == lenn:
-                        soal_key = "soal_" + str(counter)
-                    qz[soal_key] = soals
+                    qs.append(str(soals))
                     snum -= 1
                     counter += 1
                 else:
                     snum -= 1
                     counter += 1
-        qs.append(qz)
     #1/2 soal diacak, setengah awal soal dibalik dan setengah akhir soal dibalik.
     elif type == 3:
         soal = db.query(models.soalTO.soal_id).filter(models.soalTO.to_id == id_to).all()
@@ -318,8 +310,7 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
                 ids = soal1 + cids
                 soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
                 if soals != None:
-                    soal_key = "soal_" + str(counter + 1)
-                    qz[soal_key] = soals
+                    qs.append(str(soals))
                     cids -= 1
                     counter += 1
                 else:
@@ -329,16 +320,12 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
                 ids = soal1 + snum
                 soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
                 if soals != None:
-                    soal_key = "soal_" + str(counter + 1)
-                    if counter == lenn:
-                        soal_key = "soal_" + str(counter)
-                    qz[soal_key] = soals
+                    qs.append(str(soals))
                     snum -= 1
                     counter += 1
                 else:
                     snum -= 1
                     counter += 1
-        qs.append(qz)
     # 100% acak
     elif type == 4:
         rando = []
@@ -351,12 +338,10 @@ def start(to_slug: str, db: Session = Depends(get_db), current_user: int = Depen
             ids = soal1 + rands
             soals = db.query(models.soalTO.soal_id).filter(models.soalTO.soal_id == ids).scalar()
             if soals != None:
-                soal_key = "soal_" + str(counter + 1)
-                qz[soal_key] = soals
+                qs.append(str(soals))
                 counter += 1
             else:
                 counter += 1
-        qs.append(qz)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The specified type is invalid") 
     if drafts != None:
