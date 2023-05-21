@@ -66,7 +66,9 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     for ids in hasil_bs:
         bs_hasil.append(ids)
         bs_ids.append(ids.bs_id)
-    payload = []
+    to_cont = []
+    bs_cont = []
+    contents = {}
     counter = 0
     lenTO = len(to_hasil)
     lenBS = len(bs_hasil)
@@ -79,17 +81,19 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
                 "to_hasil": to_hasil[counter],
                 "to_details": details_to
             }
-            payload.append(data)
+            to_cont.append(data)
             counter += 1
         counter = 0
+        contents["to_content"] = to_cont
         while counter < lenBS:
             details_bs = db.query(bs.mainBS).filter(bs.mainBS.bs_id == bs_ids[counter]).scalar()
             data = {
                 "bs_hasil": bs_hasil[counter],
                 "bs_details": details_bs
             }
-            payload.append(data)
+            bs_cont.append(data)
             counter += 1
+        contents["bs_content"] = bs_cont
     # elif bs_hasil != [] and to_hasil == []:
     #     counter = 0
     #     while counter < lenBS:
@@ -112,7 +116,7 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     #         }
     #         payload.append(data)
     #         counter += 1
-    return payload
+    return contents
 
 @routers.put("/profile/edit")
 def edit_profile(user: schemas.UpdateUser ,db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
