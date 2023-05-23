@@ -73,7 +73,7 @@ def history(db: Session = Depends(get_db), current_user: int = Depends(auth.curr
     lenTO = len(to_hasil)
     lenBS = len(bs_hasil)
 
-    if bs_hasil != [] or to_hasil != []:
+    if bs_hasil != [] or to_hasil != [] or (bs_hasil == [] and to_hasil == []):
         counter = 0
         while counter < lenTO:
             details_to = db.query(models.mainTO).filter(models.mainTO.to_id == to_ids[counter]).scalar()
