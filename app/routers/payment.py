@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta, timezone
+from pyexpat import model
 from fastapi import HTTPException, Response, status
 from typing import List
 from fastapi import APIRouter, Depends
 from pydantic import PaymentCardNumber
-from sqlalchemy import desc, null
+from sqlalchemy import asc, desc, null
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import midtrans as mid, modelsMID as models, schemasMID as schemas, auth
@@ -23,6 +24,24 @@ def oneItem(id: int, db: Session = Depends(get_db), current_user: int = Depends(
     one_items = db.query(models.Items).filter(models.Items.item_id == id).scalar()
     return one_items
 
+@routers.post("/handling")
+def handling(handles: schemas.Handling, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    if handles.transaction_status == "settlement" or handles.transaction_status == "capture":
+        order_post = models.midtransHandling(**handles.dict())
+        db.add(order_post)
+        db.commit()
+        db.refresh(order_post)
+    return order_post
+
+@routers.put("/update/{order_id}")
+def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    payments = db.query(models.midtransHandling).filter(models.midtransHandling.order_id == order_id).scalar()
+    stat = db.query(models.Payment).filter(models.Payment.order_id == order_id)
+    stat.update({"status": payments.transaction_status})
+    db.commit()
+    return {"Status has been updated Successfully"}
+
+    
 @routers.post("")
 def payment(order: schemas.Payment, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
@@ -31,9 +50,9 @@ def payment(order: schemas.Payment, db: Session = Depends(get_db), current_user:
     db.commit()
     db.refresh(payments)
 
-    orders = db.query(models.Payment.order_id).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.order_id)).first()
+    orders = str(db.query(models.Payment.order_id).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.createdAt)).limit(1).scalar())
     orderId = []
-    orderId.append(orders.order_id)
+    orderId.append(orders)
 
     param = {
             "transaction_details":{

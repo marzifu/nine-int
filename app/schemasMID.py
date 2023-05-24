@@ -41,3 +41,12 @@ class Items(BaseModel):
     item_id: int
     price: int
     item_name: str
+
+class Handling(BaseModel):
+    order_id: str
+    merchant_id: str
+    gross_amount: float
+    currency: str 
+    transaction_status: str 
+    status_code: str
+    transaction_id: str
