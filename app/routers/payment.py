@@ -25,12 +25,14 @@ def oneItem(id: int, db: Session = Depends(get_db), current_user: int = Depends(
     return one_items
 
 @routers.post("/handling")
-def handling(handles: schemas.Handling, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+def handling(handles: schemas.Handling, db: Session = Depends(get_db)):
     if handles.transaction_status == "settlement" or handles.transaction_status == "capture":
         order_post = models.midtransHandling(**handles.dict())
         db.add(order_post)
         db.commit()
         db.refresh(order_post)
+    else:
+        return {"Data is unchanged"}
     return order_post
 
 @routers.put("/update/{order_id}")
