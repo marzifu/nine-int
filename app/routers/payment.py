@@ -24,6 +24,7 @@ def oneItem(id: int, db: Session = Depends(get_db), current_user: int = Depends(
     one_items = db.query(models.Items).filter(models.Items.item_id == id).scalar()
     return one_items
 
+#for midtrans handling
 @routers.post("/handling")
 def handling(handles: schemas.Handling, db: Session = Depends(get_db)):
     if handles.transaction_status == "settlement" or handles.transaction_status == "capture":
@@ -34,6 +35,15 @@ def handling(handles: schemas.Handling, db: Session = Depends(get_db)):
     else:
         return {"Data is unchanged"}
     return order_post
+
+@routers.get("/transactions")
+def trans_list(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    transaction_list = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id).all()
+    return transaction_list
+
+@routers.get("/latest")
+def latest_trans(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    trans_latest = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.createdAt)).limit(1).scalar()
 
 @routers.put("/update/{order_id}")
 def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
