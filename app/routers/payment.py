@@ -14,7 +14,7 @@ routers = APIRouter(
     tags=['Payment']
 )
 
-@routers.get("/items", response_model=List[schemas.Items])
+@routers.get("/items")
 def items(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     item = db.query(models.Items).all()
     return item
