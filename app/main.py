@@ -4,7 +4,6 @@ from .database import engine, get_db
 from .routers import to, user, bs, payment, admin
 from fastapi.middleware.cors import CORSMiddleware
 from . import database
-import sentry_sdk
 
 database.Base.metadata.create_all(bind=engine)
 
