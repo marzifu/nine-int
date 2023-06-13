@@ -409,7 +409,6 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
                 payload.append(data)
                 counter+=1
         return payload
-
     else:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
 
