@@ -409,31 +409,32 @@ def pembahasan(to_slug: str, db: Session = Depends(get_db), current_user: int = 
                 payload.append(data)
                 counter+=1
         return payload
+
     else:
         raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail="You haven't completed this tryout yet.")
-
+    
 @routers.get("/{to_slug}/peserta")
 def peserta(to_slug: str, db: Session = Depends(get_db)):
     id_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
-    users_taken = db.query(models.takenTO).filter(models.takenTO.to_id == id_to).all()
-    length = len(users_taken)
-    counter = 0
-    user = []
-    type = []
-    to = []
+    taken_to = db.query(models.takenTO).filter(models.takenTO.to_id == id_to).all()
+    users = []
+    types = []
     payload = []
-    for users in users_taken:
-        user_detail = db.query(models.Users.user_name).filter(models.Users.user_id == users.user_id).scalar()
-        user.append(user_detail)
-    for types in users_taken:
-        type_detail = db.query(models.takenTO.type).filter(models.takenTO.user_id == types.user_id, models.takenTO.to_id == id_to).scalar()
-        type.append(type_detail)
+    counter = 0
+    length = len(taken_to)
+    for user in taken_to:
+        user_ids = db.query(models.Users.user_id).filter(models.Users.user_id == user.user_id).scalar()
+        users.append(user_ids)
+    for type in taken_to:
+        to_type = db.query(models.takenTO.type).filter(models.takenTO.to_id == id_to, models.takenTO.user_id == type.user_id).scalar()
+        types.append(to_type)
     while counter < length:
         data = {
-            "nama": user[counter],
-            "title_to": db.query(models.mainTO.to_title).filter(models.mainTO.to_slug == to_slug).scalar(),
-            "startsAt": db.query(models.mainTO.startsAt).filter(models.mainTO.to_slug == to_slug).scalar(),
-            "type": type[counter]
+            "user_id": users[counter],
+            "nama": db.query(models.Users.user_name).filter(models.Users.user_id == users[counter]).scalar(),
+            "title": db.query(models.mainTO.to_title).filter(models.mainTO.to_id == id_to).scalar(),
+            "startsAt": db.query(models.mainTO.startsAt).filter(models.mainTO.to_id == id_to).scalar(),
+            "type": types[counter]
         }
         payload.append(data)
         counter+=1

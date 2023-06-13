@@ -4,6 +4,8 @@ from .database import engine, get_db
 from .routers import to, user, bs, payment, admin
 from fastapi.middleware.cors import CORSMiddleware
 from . import database
+from fastapi.staticfiles import StaticFiles
+from PIL import Image
 
 database.Base.metadata.create_all(bind=engine)
 
@@ -18,15 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# sentry_sdk.init(
-#     dsn="https://f34d02beeb684332aed25456ffb70f86@o4505264942284800.ingest.sentry.io/4505274290077696",
-
-#     # Set traces_sample_rate to 1.0 to capture 100%
-#     traces_sample_rate=1.0,
-# )
-
-app = FastAPI()
 
 app.include_router(user.routers)
 app.include_router(to.routers)
