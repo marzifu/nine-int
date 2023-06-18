@@ -28,7 +28,7 @@ class ShippingAddress(BaseModel):
     postal_code: int
 
 class Payment(BaseModel):
-    order_id: Optional[int] = None
+    order_id: Optional[UUID4] = None
     order_details: OrderDetails
     customer_details: CustomerDetails
     billing_address: BillingAddress
