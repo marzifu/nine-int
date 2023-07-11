@@ -109,5 +109,9 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[UUID4]
 
+class Peserta(BaseModel):
+    user_id: Optional[UUID4]
+    
+
 
 

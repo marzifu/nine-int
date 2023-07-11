@@ -44,6 +44,7 @@ def trans_list(db: Session = Depends(get_db), current_user: int = Depends(auth.c
 @routers.get("/latest")
 def latest_trans(db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     trans_latest = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.createdAt)).limit(1).scalar()
+    return trans_latest
 
 @routers.put("/update/{order_id}")
 def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
@@ -53,10 +54,21 @@ def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int 
     db.commit()
     return {"Status has been updated Successfully"}
 
-    
+@routers.delete("/delete/{order_id}")
+def deleteOrder(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
+    payments = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id, models.Payment.order_id == order_id).scalar()
+    if payments == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No payment request has been made")
+    else:
+        db.delete(payments)
+        db.commit()
+
 @routers.post("")
 def payment(order: schemas.Payment, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
+    latest = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.createdAt)).limit(1).scalar()
+    if latest != None:
+        return {"You have an unfinished payment transaction"}
     payments = models.Payment(user_id=current,**order.dict())
     db.add(payments)
     db.commit()
