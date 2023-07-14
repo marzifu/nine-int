@@ -49,7 +49,7 @@ def latest_trans(db: Session = Depends(get_db), current_user: int = Depends(auth
 @routers.put("/update/{order_id}")
 def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     payments = db.query(models.midtransHandling).filter(models.midtransHandling.order_id == order_id).scalar()
-    stat = db.query(models.Payment).filter(models.Payment.order_id == order_id).scalar()
+    stat = db.query(models.Payment).filter(models.Payment.order_id == order_id)
     stat.update({"status": payments.transaction_status})
     db.commit()
     return {"Status has been updated Successfully"}
