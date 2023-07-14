@@ -49,7 +49,7 @@ def latest_trans(db: Session = Depends(get_db), current_user: int = Depends(auth
 @routers.put("/update/{order_id}")
 def statusUpdate(order_id:str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     payments = db.query(models.midtransHandling).filter(models.midtransHandling.order_id == order_id).scalar()
-    stat = db.query(models.Payment).filter(models.Payment.order_id == order_id)
+    stat = db.query(models.Payment).filter(models.Payment.order_id == order_id).scalar()
     stat.update({"status": payments.transaction_status})
     db.commit()
     return {"Status has been updated Successfully"}
@@ -66,9 +66,6 @@ def deleteOrder(order_id:str, db: Session = Depends(get_db), current_user: int =
 @routers.post("")
 def payment(order: schemas.Payment, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
-    latest = db.query(models.Payment).filter(models.Payment.user_id == current_user.user_id).order_by(desc(models.Payment.createdAt)).limit(1).scalar()
-    if latest != None:
-        return {"You have an unfinished payment transaction"}
     payments = models.Payment(user_id=current,**order.dict())
     db.add(payments)
     db.commit()
