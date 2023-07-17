@@ -32,7 +32,6 @@ def handling(handles: schemas.Handling, db: Session = Depends(get_db)):
         db.add(order_post)
         db.commit()
         db.refresh(order_post)
-        print(handles.order_id)
     else:
         return {"Data is unchanged"}
     return order_post

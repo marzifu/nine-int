@@ -123,6 +123,12 @@ def create_soal(to_slug:str, soal:List[schemas.Soal], db: Session = Depends(get_
 @routers.post("/take/{to_slug}")
 def take_to(to_slug: str, db: Session = Depends(get_db), current_user: int = Depends(auth.current_user)):
     current = str(current_user.user_id)
+    taken_tos = db.query(models.takenTO).filter(models.takenTO.user_id == current).all()
+    taken_count = []
+    for taken in taken_tos:
+        taken_count.append(taken)
+    if len(taken_count) >= 3 and current_user.membership == "Free":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You have taken the maximum limit of a free user")
     current_to = db.query(models.mainTO.to_id).filter(models.mainTO.to_slug == to_slug).scalar()
     taken_to = db.query(models.takenTO.to_id).filter(models.takenTO.to_id == current_to, models.takenTO.user_id == current).limit(1).scalar()
     user_exist = str(db.query(models.takenTO.user_id).filter(models.takenTO.user_id == current_user.user_id).limit(1).scalar())
